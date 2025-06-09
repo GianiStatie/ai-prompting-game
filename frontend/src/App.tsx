@@ -397,6 +397,11 @@ const ActionButton = styled.button`
   padding: 2px;
   border-radius: 2px;
   font-size: 12px;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   transition: opacity 0.2s;
 
   ${ChatItem}:hover & {
@@ -409,17 +414,19 @@ const EditButton = styled(ActionButton)`
   
   &:hover {
     color: #19c37d;
-    background-color: rgba(25, 195, 125, 0.2);
+    background-color: rgba(255, 107, 107, 0.1);
     transform: scale(1.25);
   }
 `;
 
 const DeleteButton = styled(ActionButton)`
   margin-left: 4px;
+  transition: all 0.2s ease;
   
   &:hover {
     color: #ff6b6b;
     background-color: rgba(255, 107, 107, 0.1);
+    transform: scale(1.25);
   }
 `;
 
@@ -506,11 +513,11 @@ function App() {
     const newChatId = `chat_${Date.now()}`;
     
     // Count existing "New Chat" titles to determine the next number
-    const newChatPattern = /^New Chat( \d+)?$/;
+    const newChatPattern = /^Attempt ( \d+)?$/;
     const existingNewChatNumbers = chats
       .filter(chat => newChatPattern.test(chat.title))
       .map(chat => {
-        const match = chat.title.match(/^New Chat( (\d+))?$/);
+        const match = chat.title.match(/^Attempt ( (\d+))?$/);
         return match && match[2] ? parseInt(match[2], 10) : 1;
       })
       .sort((a, b) => a - b);
@@ -527,7 +534,7 @@ function App() {
     
     const newChat: Chat = {
       id: newChatId,
-      title: `New Chat ${nextNumber}`,
+      title: `Attempt ${nextNumber}`,
       messages: [],
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()
@@ -795,7 +802,7 @@ function App() {
         <DrawerContent>
           <NewChatButton onClick={handleNewChat}>
             <PlusIcon>+</PlusIcon>
-            New Chat
+            New Attempt
           </NewChatButton>
           
           <ChatHistorySection>
