@@ -118,8 +118,11 @@ export const WelcomeMessage = styled.div`
 
 export const WelcomeTitle = styled.h1`
   font-size: 32px;
-  color: #fff;
+  font-weight: 700;
   margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
 `;
 
 export const WelcomeSubtitle = styled.p`
@@ -132,4 +135,124 @@ export const WelcomeSubtitle = styled.p`
 export const WelcomeHighlight = styled.span`
   color: #19c37d;
   font-weight: bold;
+`;
+
+export const InfoButton = styled.button`
+  background: none;
+  border: none;
+  color: #565869;
+  font-size: 20px;
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: all 0.2s ease;
+
+  &:hover {
+    color: #19c37d;
+    background-color: rgba(25, 195, 125, 0.1);
+  }
+`;
+
+export const RulesPopup = styled.div`
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: #2b2c2f;
+  border: 2px solid #19c37d;
+  border-radius: 12px;
+  padding: 24px;
+  max-width: 600px;
+  width: 90%;
+  max-height: 80vh;
+  overflow-y: auto;
+  z-index: 1000;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+`;
+
+export const RulesPopupTitle = styled.h2`
+  font-size: 24px;
+  font-weight: 600;
+  margin: 0 0 16px 0;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+`;
+
+export const RulesList = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+`;
+
+export const RuleItem = styled.div`
+  background-color: rgba(32, 33, 35, 0.9);
+  padding: 12px;
+  border-radius: 8px;
+  border: 1px solid #565869;
+  text-align: left;
+  line-height: 1.6;
+
+  h1 {
+    font-size: 24px;
+    font-weight: 600;
+    margin: 0 0 16px 0;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  ul {
+    margin: 0;
+    padding-left: 20px;
+    list-style-type: disc;
+  }
+
+  li {
+    margin-bottom: 4px;
+    color: #fff;
+  }
+
+  blockquote {
+    margin: 16px 0 0 0;
+    padding: 12px;
+    border-left: 4px solid #19c37d;
+    background-color: rgba(25, 195, 125, 0.1);
+    border-radius: 0 8px 8px 0;
+    color: #fff;
+  }
+
+  strong {
+    color: #19c37d;
+    font-weight: 600;
+  }
+
+  p {
+    margin: 0;
+    color: #fff;
+  }
+`;
+
+export const CloseButton = styled.button`
+  background: none;
+  border: none;
+  color: #565869;
+  font-size: 20px;
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: all 0.2s ease;
+
+  &:hover {
+    color: #19c37d;
+    background-color: rgba(25, 195, 125, 0.1);
+  }
 `; 
