@@ -60,5 +60,11 @@ async def stream(message: Message, chat_history: List[Message]):
     
     return StreamingResponse(generate(), media_type="text/event-stream")
 
+@app.get("/api/reset-game")
+async def reset_game():
+    agent.reset_game()
+    return {"message": "Game reset successfully"}
+
+
 if __name__ == "__main__":
     uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True) 

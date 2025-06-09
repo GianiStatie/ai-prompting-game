@@ -70,6 +70,11 @@ class AbstractModel:
             {"role": "user" if msg.isUser else "assistant", "content": msg.text}
             for msg in chat_history
         ]
+    
+    def reset_game(self):
+        self.llm_rules = [
+            "Speak in a similar maner that the user is speaking"
+        ]
 
 
 class OllamaModel(AbstractModel):

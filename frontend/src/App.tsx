@@ -89,6 +89,9 @@ function App() {
     setEditingChatId(null);
     setEditingTitle('');
     setShowResetConfirm(false);
+
+    // Call reset game endpoint
+    fetch(`${import.meta.env.VITE_API_URL}/api/reset-game`);
     
     // Create a new chat and fetch fresh rules
     setTimeout(() => {
@@ -235,6 +238,8 @@ function App() {
 
       // Read the stream
       while (true) {
+        const chunkStartTime = performance.now();
+        
         const { done, value } = await reader.read();
         if (done) break;
 
@@ -274,8 +279,14 @@ function App() {
           }
         }
         
-        // Add a small delay between chunks for better readability
-        await new Promise(resolve => setTimeout(resolve, GAME_CONFIG.STREAMING_DELAY));
+        // Calculate elapsed time for processing this chunk
+        const chunkElapsedTime = performance.now() - chunkStartTime;
+        
+        // Only wait if the chunk processed faster than STREAMING_DELAY
+        if (chunkElapsedTime < GAME_CONFIG.STREAMING_DELAY) {
+          const remainingDelay = GAME_CONFIG.STREAMING_DELAY - chunkElapsedTime;
+          await new Promise(resolve => setTimeout(resolve, remainingDelay));
+        }
       }
       
       // Decrease lives only after submission completes and session is not done

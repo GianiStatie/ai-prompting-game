@@ -23,7 +23,6 @@ class Agent:
         if self.password in message:
             self.model.update_rules(chat_history, self.password)
             self.password = self.generate_password()
-            print(f"New Password: {self.password}")
             return self.model.build_congratulations(), True
 
         response = self.model.build_message(message, self.password, chat_history)
@@ -33,7 +32,6 @@ class Agent:
         if self.password in message:
             self.model.update_rules(chat_history, self.password)
             self.password = self.generate_password()
-            print(f"New Password: {self.password}")
             for chunk in self.model.stream_congratulations():
                 yield (chunk, True)
 
@@ -48,11 +46,15 @@ class Agent:
                 for word in words:
                     yield (word, False)
         
-
     def generate_password(self):
         """Generate a new password."""
         password_choices = ["password", "cat", "mouse", "dog", "bird", "fish", "horse", "rabbit", "snake", "tiger", "lion", "elephant", "giraffe", "zebra", "penguin", "koala", "kangaroo", "panda", "bear", "fox", "wolf", "cat", "dog", "bird", "fish", "horse", "rabbit", "snake", "tiger", "lion", "elephant", "giraffe", "zebra", "penguin", "koala", "panda", "bear", "fox", "wolf"]
-        return random.choice(password_choices).upper()
+        password = random.choice(password_choices).upper()
+        print(f"New Password: {password}")
+        return password
 
-    
+    def reset_game(self):
+        self.password = self.generate_password()
+        self.model.reset_game()
+
     
