@@ -14,6 +14,7 @@ interface Chat {
   messages: Message[];
   createdAt: string;
   updatedAt: string;
+  isSessionComplete?: boolean;
 }
 
 interface Rule {
@@ -43,9 +44,30 @@ const DrawerContent = styled.div`
   display: flex;
   flex-direction: column;
   gap: 8px;
+  height: 100%;
 `;
 
 const NewChatButton = styled.button`
+  padding: 12px;
+  border-radius: 6px;
+  border: 1px solid #565869;
+  background-color: transparent;
+  color: #fff;
+  font-size: 14px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  transition: background-color 0.2s;
+  white-space: nowrap;
+
+  &:hover {
+    background-color: #2b2c2f;
+  }
+`;
+
+const ResetButton = styled.button`
+  width: 100%;
   padding: 12px;
   border-radius: 6px;
   border: 1px solid #565869;
@@ -146,9 +168,16 @@ const Input = styled.textarea`
   font-family: inherit;
   line-height: 1.5;
   
-  &:focus {
+  &:focus:not(:disabled) {
     outline: none;
     border-color: #6b6c7b;
+  }
+
+  &:disabled {
+    background-color: #2b2c2f;
+    color: #6b6c7b;
+    cursor: not-allowed;
+    border-color: #3b3c3f;
   }
 
   /* Custom scrollbar styling */
@@ -180,8 +209,13 @@ const SendButton = styled.button`
   cursor: pointer;
   transition: background-color 0.2s;
 
-  &:hover {
+  &:hover:not(:disabled) {
     background-color: #15a067;
+  }
+
+  &:disabled {
+    background-color: #6b6c7b;
+    cursor: not-allowed;
   }
 `;
 
@@ -484,6 +518,33 @@ const PopupButton = styled.button`
   }
 `;
 
+const LifeCounter = styled.div`
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background-color: rgba(32, 33, 35, 0.9);
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px solid #565869;
+  z-index: 5;
+`;
+
+const LifeCounterText = styled.span`
+  color: #fff;
+  font-size: 14px;
+  font-weight: 600;
+`;
+
+const LifeIcon = styled.span<{ $isActive: boolean }>`
+  opacity: ${props => props.$isActive ? '1' : '0.3'};
+  font-size: 16px;
+  transition: opacity 0.2s ease;
+  filter: ${props => props.$isActive ? 'none' : 'grayscale(100%)'};
+`;
+
 function App() {
   // Load chats from localStorage on initialization
   const loadChatsFromStorage = (): Chat[] => {
@@ -530,16 +591,63 @@ function App() {
     }
   };
 
+  // Load rules from localStorage
+  const loadRulesFromStorage = (): Rule[] => {
+    try {
+      const storedRules = localStorage.getItem('ai-prompting-game-rules');
+      if (storedRules) {
+        return JSON.parse(storedRules);
+      }
+    } catch (error) {
+      console.error('Error loading rules from localStorage:', error);
+    }
+    return [];
+  };
+
+  // Save rules to localStorage
+  const saveRulesToStorage = (rules: Rule[]) => {
+    try {
+      localStorage.setItem('ai-prompting-game-rules', JSON.stringify(rules));
+    } catch (error) {
+      console.error('Error saving rules to localStorage:', error);
+    }
+  };
+
+  // Load lives from localStorage
+  const loadLivesFromStorage = (): number => {
+    try {
+      const storedLives = localStorage.getItem('ai-prompting-game-lives');
+      if (storedLives) {
+        return parseInt(storedLives, 10);
+      }
+    } catch (error) {
+      console.error('Error loading lives from localStorage:', error);
+    }
+    return 3; // Default to 3 lives
+  };
+
+  // Save lives to localStorage
+  const saveLivesToStorage = (lives: number) => {
+    try {
+      localStorage.setItem('ai-prompting-game-lives', lives.toString());
+    } catch (error) {
+      console.error('Error saving lives to localStorage:', error);
+    }
+  };
+
   const [chats, setChats] = useState<Chat[]>(loadChatsFromStorage);
   const [activeChatId, setActiveChatId] = useState<string | null>(loadActiveChatIdFromStorage);
   const [inputValue, setInputValue] = useState('');
   const [isDrawerOpen, setIsDrawerOpen] = useState(true);
   const [isRulesOpen, setIsRulesOpen] = useState(false);
-  const [rules, setRules] = useState<Rule[]>([]);
+  const [rules, setRules] = useState<Rule[]>(loadRulesFromStorage);
   const [isStreaming, setIsStreaming] = useState(false);
   const [isSessionComplete, setIsSessionComplete] = useState(false);
+  const [hasSeenCongratulations, setHasSeenCongratulations] = useState(false);
   const [editingChatId, setEditingChatId] = useState<string | null>(null);
   const [editingTitle, setEditingTitle] = useState('');
+  const [lives, setLives] = useState<number>(loadLivesFromStorage);
+  const [showResetConfirm, setShowResetConfirm] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -552,6 +660,16 @@ function App() {
   useEffect(() => {
     saveActiveChatIdToStorage(activeChatId);
   }, [activeChatId]);
+
+  // Save rules to localStorage whenever rules change
+  useEffect(() => {
+    saveRulesToStorage(rules);
+  }, [rules]);
+
+  // Save lives to localStorage whenever lives change
+  useEffect(() => {
+    saveLivesToStorage(lives);
+  }, [lives]);
 
   // Get current chat messages
   const currentMessages = chats.find(chat => chat.id === activeChatId)?.messages || [];
@@ -595,12 +713,53 @@ function App() {
       title: `Attempt ${nextNumber}`,
       messages: [],
       createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
+      updatedAt: new Date().toISOString(),
+      isSessionComplete: false
     };
     
     setChats(prev => [newChat, ...prev]);
     setActiveChatId(newChatId);
+    
+    // Fetch updated rules when creating a new chat
+    fetchRules();
+    
     return newChatId;
+  };
+
+  // Reset all state and localStorage
+  const handleResetAll = () => {
+    setShowResetConfirm(true);
+  };
+
+  const handleConfirmReset = () => {
+    // Clear all localStorage
+    localStorage.removeItem('ai-prompting-game-chats');
+    localStorage.removeItem('ai-prompting-game-active-chat-id');
+    localStorage.removeItem('ai-prompting-game-rules');
+    localStorage.removeItem('ai-prompting-game-lives');
+    
+    // Reset all state
+    setChats([]);
+    setActiveChatId(null);
+    setRules([]);
+    setLives(3);
+    setIsSessionComplete(false);
+    setHasSeenCongratulations(false);
+    setInputValue('');
+    setIsStreaming(false);
+    setEditingChatId(null);
+    setEditingTitle('');
+    setShowResetConfirm(false);
+    
+    // Create a new chat and fetch fresh rules
+    setTimeout(() => {
+      createNewChat(true);
+      fetchRules();
+    }, 0);
+  };
+
+  const handleCancelReset = () => {
+    setShowResetConfirm(false);
   };
 
   // Initialize with first chat and validate active chat ID
@@ -619,18 +778,37 @@ function App() {
     }
   }, []);
 
+  // Load isSessionComplete state when active chat changes
   useEffect(() => {
-    const fetchRules = async () => {
-      try {
-        const response = await fetch(`${import.meta.env.VITE_API_URL}/api/rules`);
-        const data = await response.json();
-        setRules(data);
-      } catch (error) {
-        console.error('Error fetching rules:', error);
-      }
-    };
+    if (activeChatId) {
+      const activeChat = chats.find(chat => chat.id === activeChatId);
+      setIsSessionComplete(activeChat?.isSessionComplete || false);
+    }
+  }, [activeChatId, chats]);
 
-    fetchRules();
+  // Fetch rules from API
+  const fetchRules = async () => {
+    try {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/rules`);
+      const data = await response.json();
+      setRules(data);
+    } catch (error) {
+      console.error('Error fetching rules:', error);
+      // If fetch fails and we have no rules in localStorage, keep the empty array
+      if (rules.length === 0) {
+        console.log('No rules available from API or localStorage');
+      }
+    }
+  };
+
+  useEffect(() => {
+    // Only fetch rules from API if we don't have any in localStorage
+    if (rules.length === 0) {
+      // Clear the chat history and create a new chat
+      setChats([]);
+      createNewChat(true);
+      fetchRules();
+    }
   }, []);
 
   // Auto-scroll to bottom when messages change
@@ -651,7 +829,10 @@ function App() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!inputValue.trim() || isStreaming || isSessionComplete) return;
+    if (!inputValue.trim() || isStreaming || isSessionComplete || lives <= 0) return;
+    
+    // Decrease lives on message submission
+    setLives(prev => prev - 1);
     
     // Ensure we have an active chat
     let currentChatId = activeChatId;
@@ -767,6 +948,19 @@ function App() {
                 // If session is done, break the outer loop
                 if (is_done) {
                   setIsSessionComplete(true);
+                  setHasSeenCongratulations(false); // Reset flag for new completion
+                  setLives(3); // Refill lives when password is found
+                  // Update the chat to mark it as complete
+                  setChats(prev => prev.map(chat => {
+                    if (chat.id === currentChatId) {
+                      return {
+                        ...chat,
+                        isSessionComplete: true,
+                        updatedAt: new Date().toISOString()
+                      };
+                    }
+                    return chat;
+                  }));
                   // reader.cancel();
                   // return;
                 }
@@ -807,11 +1001,15 @@ function App() {
     createNewChat();
     setInputValue('');
     setIsSessionComplete(false);
+    setHasSeenCongratulations(true); // Mark that user has seen and dismissed the congratulations
+    setLives(3); // Reset lives when starting new attempt
   };
 
   const handleChatSelect = (chatId: string) => {
     setActiveChatId(chatId);
-    setIsSessionComplete(false);
+    // Load the isSessionComplete state from the selected chat
+    const selectedChat = chats.find(chat => chat.id === chatId);
+    setIsSessionComplete(selectedChat?.isSessionComplete || false);
   };
 
   const handleDeleteChat = (chatId: string, e: React.MouseEvent) => {
@@ -883,7 +1081,7 @@ function App() {
 
   return (
     <AppContainer>
-      {isSessionComplete && (
+      {isSessionComplete && !hasSeenCongratulations && (
         <PopupOverlay>
           <PopupContent>
             <PopupTitle>🎉 Congratulations! 🎉</PopupTitle>
@@ -895,6 +1093,32 @@ function App() {
             <PopupButton onClick={handleNewChat}>
               New Attempt
             </PopupButton>
+          </PopupContent>
+        </PopupOverlay>
+      )}
+      {showResetConfirm && (
+        <PopupOverlay>
+          <PopupContent>
+            <PopupTitle>⚠️ Reset Everything ⚠️</PopupTitle>
+            <PopupMessage>
+              Are you sure you want to reset everything? This will permanently delete:
+              <br /><br />
+              • All chat history and attempts
+              <br />
+              • All saved rules and progress
+              <br />
+              • Your current lives and session
+              <br /><br />
+              <strong>This action cannot be undone.</strong>
+            </PopupMessage>
+            <div style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
+              <PopupButton onClick={handleCancelReset} style={{ backgroundColor: '#565869', color: '#fff' }}>
+                Cancel
+              </PopupButton>
+              <PopupButton onClick={handleConfirmReset} style={{ backgroundColor: '#ff6b6b' }}>
+                Reset Everything
+              </PopupButton>
+            </div>
           </PopupContent>
         </PopupOverlay>
       )}
@@ -955,6 +1179,13 @@ function App() {
               ))}
             </RulesList>
           </RulesSection>
+          
+          <div style={{ marginTop: 'auto', paddingTop: '12px' }}>
+            <ResetButton onClick={handleResetAll}>
+              <span>🔄</span>
+              Reset Everything
+            </ResetButton>
+          </div>
         </DrawerContent>
       </SideDrawer>
       <MainContent>
@@ -989,14 +1220,23 @@ function App() {
               value={inputValue}
               onChange={(e) => setInputValue(e.target.value)}
               onKeyDown={handleKeyDown}
-              placeholder="Type your message..."
+              placeholder={lives <= 0 ? "No lives remaining..." : "Type your message..."}
+              disabled={isStreaming || isSessionComplete || lives <= 0}
             />
-            <SendButton type="submit" disabled={isStreaming || isSessionComplete}>
-              {isStreaming ? 'Sending...' : isSessionComplete ? 'Complete' : 'Send'}
+            <SendButton type="submit" disabled={isStreaming || isSessionComplete || lives <= 0}>
+              {isStreaming ? 'Sending...' : isSessionComplete ? 'Completed!' : lives <= 0 ? 'No Lives' : 'Send'}
             </SendButton>
           </InputForm>
         </InputContainer>
       </MainContent>
+              <LifeCounter>
+          <LifeCounterText>Lives:</LifeCounterText>
+          {[1, 2, 3].map(heartNumber => (
+            <LifeIcon key={heartNumber} $isActive={lives >= heartNumber}>
+              ❤️
+            </LifeIcon>
+          ))}
+        </LifeCounter>
     </AppContainer>
   );
 }
