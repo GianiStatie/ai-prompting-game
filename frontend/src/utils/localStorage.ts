@@ -1,4 +1,5 @@
 import { Chat, Rule } from '../types';
+import { DEFAULT_LIVES } from '../config/game';
 
 // Chat storage functions
 export const loadChatsFromStorage = (): Chat[] => {
@@ -74,7 +75,7 @@ export const loadLivesFromStorage = (): number => {
   } catch (error) {
     console.error('Error loading lives from localStorage:', error);
   }
-  return 3; // Default to 3 lives
+  return DEFAULT_LIVES; // Default to configured number of lives
 };
 
 export const saveLivesToStorage = (lives: number) => {

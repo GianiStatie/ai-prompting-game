@@ -18,6 +18,7 @@ import {
   clearAllStorage 
 } from './utils/localStorage';
 import { fetchRules } from './utils/chat';
+import { DEFAULT_LIVES, GAME_CONFIG } from './config/game';
 
 function App() {
   const {
@@ -79,7 +80,7 @@ function App() {
     // Reset all state
     clearAllChats();
     setRules([]);
-    setLives(3);
+    setLives(DEFAULT_LIVES);
     setIsSessionComplete(false);
     setHasSeenCongratulations(false);
     setHasSeenGameOver(false);
@@ -169,7 +170,7 @@ function App() {
     if (textarea) {
       textarea.style.height = 'auto';
       const scrollHeight = textarea.scrollHeight;
-      const maxHeight = 120; // 3 rows max
+      const maxHeight = GAME_CONFIG.MAX_TEXTAREA_HEIGHT; // configurable max height
       textarea.style.height = Math.min(scrollHeight, maxHeight) + 'px';
     }
   }, [inputValue]);
@@ -261,7 +262,7 @@ function App() {
                   sessionCompleted = true;
                   setIsSessionComplete(true);
                   setHasSeenCongratulations(false); // Reset flag for new completion
-                  setLives(3); // Refill lives when password is found
+                  setLives(DEFAULT_LIVES); // Refill lives when password is found
                   setHasSeenGameOver(false); // Reset game over flag when lives are restored
                   // Update the chat to mark it as complete
                   markChatAsComplete(currentChatId);
@@ -274,7 +275,7 @@ function App() {
         }
         
         // Add a small delay between chunks for better readability
-        await new Promise(resolve => setTimeout(resolve, 10));
+        await new Promise(resolve => setTimeout(resolve, GAME_CONFIG.STREAMING_DELAY));
       }
       
       // Decrease lives only after submission completes and session is not done
