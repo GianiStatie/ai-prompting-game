@@ -19,6 +19,7 @@ import {
 } from './utils/localStorage';
 import { fetchRules } from './utils/chat';
 import { DEFAULT_LIVES, GAME_CONFIG } from './config/game';
+import { Confetti } from './components/Confetti';
 
 function App() {
   const {
@@ -48,6 +49,7 @@ function App() {
   const [showResetConfirm, setShowResetConfirm] = useState(false);
   const [showGameOverPopup, setShowGameOverPopup] = useState(false);
   const [hasSeenGameOver, setHasSeenGameOver] = useState(false);
+  const [showConfetti, setShowConfetti] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -83,6 +85,7 @@ function App() {
     setLives(DEFAULT_LIVES);
     setIsSessionComplete(false);
     setHasSeenCongratulations(false);
+    setShowConfetti(false);
     setHasSeenGameOver(false);
     setInputValue('');
     setIsStreaming(false);
@@ -142,7 +145,9 @@ function App() {
   const handleFetchRules = async () => {
     try {
       const data = await fetchRules();
-      setRules(data);
+      // Sort rules in descending order by ID
+      const sortedRules = [...data].sort((a, b) => b.id - a.id);
+      setRules(sortedRules);
     } catch (error) {
       console.error('Error fetching rules:', error);
       // If fetch fails and we have no rules in localStorage, keep the empty array
@@ -267,6 +272,7 @@ function App() {
                   sessionCompleted = true;
                   setIsSessionComplete(true);
                   setHasSeenCongratulations(false); // Reset flag for new completion
+                  setShowConfetti(true);
                   setLives(DEFAULT_LIVES); // Refill lives when password is found
                   setHasSeenGameOver(false); // Reset game over flag when lives are restored
                   // Update the chat to mark it as complete
@@ -313,9 +319,11 @@ function App() {
 
   const handleNewChat = () => {
     createNewChat();
+    handleFetchRules();
     setInputValue('');
     setIsSessionComplete(false);
     setHasSeenCongratulations(true); // Mark that user has seen and dismissed the congratulations
+    setShowConfetti(false);
   };
 
   const handleChatSelect = (chatId: string) => {
@@ -376,6 +384,7 @@ function App() {
 
   return (
     <AppContainer>
+      {showConfetti && <Confetti active={true} duration={5000} />}
       {isSessionComplete && !hasSeenCongratulations && (
         <Popup
           title="🎉 Congratulations! 🎉"

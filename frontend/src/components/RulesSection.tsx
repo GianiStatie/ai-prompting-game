@@ -12,7 +12,7 @@ import {
 
 interface RulesSectionProps {
   rules: Rule[];
-  isRulesOpen: boolean;
+  isRulesOpen: boolean
   onToggleRules: () => void;
 }
 
