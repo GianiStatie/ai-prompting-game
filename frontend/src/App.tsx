@@ -1,642 +1,39 @@
 import { useState, useEffect, useRef } from 'react';
-import styled from 'styled-components';
-
-interface Message {
-  id: number;
-  text: string;
-  isUser: boolean;
-  timestamp?: string;
-}
-
-interface Chat {
-  id: string;
-  title: string;
-  messages: Message[];
-  createdAt: string;
-  updatedAt: string;
-  isSessionComplete?: boolean;
-}
-
-interface Rule {
-  id: number;
-  title: string;
-  description: string;
-}
-
-const AppContainer = styled.div`
-  display: flex;
-  height: 100vh;
-  background-color: #343541;
-  color: #fff;
-`;
-
-const SideDrawer = styled.div<{ $isOpen: boolean }>`
-  width: ${props => props.$isOpen ? '260px' : '0'};
-  background-color: #202123;
-  transition: width 0.3s ease;
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-`;
-
-const DrawerContent = styled.div`
-  padding: 12px;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  height: 100%;
-`;
-
-const NewChatButton = styled.button`
-  padding: 12px;
-  border-radius: 6px;
-  border: 1px solid #565869;
-  background-color: transparent;
-  color: #fff;
-  font-size: 14px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  transition: background-color 0.2s;
-  white-space: nowrap;
-
-  &:hover {
-    background-color: #2b2c2f;
-  }
-`;
-
-const ResetButton = styled.button`
-  width: 100%;
-  padding: 12px;
-  border-radius: 6px;
-  border: 1px solid #565869;
-  background-color: transparent;
-  color: #fff;
-  font-size: 14px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  transition: background-color 0.2s;
-  white-space: nowrap;
-
-  &:hover {
-    background-color: #2b2c2f;
-  }
-`;
-
-const PlusIcon = styled.span`
-  font-size: 18px;
-  line-height: 1;
-`;
-
-const ToggleButton = styled.button`
-  position: absolute;
-  left: 12px;
-  top: 12px;
-  padding: 8px;
-  border-radius: 6px;
-  border: 1px solid #565869;
-  background-color: transparent;
-  color: #fff;
-  cursor: pointer;
-  z-index: 10;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: background-color 0.2s;
-
-  &:hover {
-    background-color: #2b2c2f;
-  }
-`;
-
-const MainContent = styled.div`
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  position: relative;
-`;
-
-const ChatContainer = styled.div`
-  flex: 1;
-  overflow-y: auto;
-  padding: 20px;
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-  margin-top: 48px;
-  position: relative;
-`;
-
-const MessageBubble = styled.div<{ $isUser: boolean }>`
-  max-width: 80%;
-  padding: 12px 16px;
-  border-radius: 8px;
-  background-color: ${props => props.$isUser ? '#2b2c2f' : '#444654'};
-  align-self: ${props => props.$isUser ? 'flex-end' : 'flex-start'};
-  margin-left: ${props => props.$isUser ? 'auto' : '0'};
-  margin-right: ${props => props.$isUser ? '0' : 'auto'};
-`;
-
-const InputContainer = styled.div`
-  padding: 20px;
-  background-color: #343541;
-  border-top: 1px solid #565869;
-`;
-
-const InputForm = styled.form`
-  display: flex;
-  gap: 10px;
-  max-width: 800px;
-  margin: 0 auto;
-`;
-
-const Input = styled.textarea`
-  flex: 1;
-  padding: 12px;
-  border-radius: 8px;
-  border: 1px solid #565869;
-  background-color: #40414f;
-  color: #fff;
-  font-size: 16px;
-  resize: none;
-  min-height: 48px;
-  max-height: 60px; /* 3 rows approximately */
-  overflow-y: auto;
-  font-family: inherit;
-  line-height: 1.5;
-  
-  &:focus:not(:disabled) {
-    outline: none;
-    border-color: #6b6c7b;
-  }
-
-  &:disabled {
-    background-color: #2b2c2f;
-    color: #6b6c7b;
-    cursor: not-allowed;
-    border-color: #3b3c3f;
-  }
-
-  /* Custom scrollbar styling */
-  &::-webkit-scrollbar {
-    width: 6px;
-  }
-
-  &::-webkit-scrollbar-track {
-    background: transparent;
-  }
-
-  &::-webkit-scrollbar-thumb {
-    background-color: #565869;
-    border-radius: 3px;
-  }
-
-  &::-webkit-scrollbar-thumb:hover {
-    background-color: #6b6c7b;
-  }
-`;
-
-const SendButton = styled.button`
-  padding: 12px 24px;
-  border-radius: 8px;
-  border: none;
-  background-color: #19c37d;
-  color: white;
-  font-weight: bold;
-  cursor: pointer;
-  transition: background-color 0.2s;
-
-  &:hover:not(:disabled) {
-    background-color: #15a067;
-  }
-
-  &:disabled {
-    background-color: #6b6c7b;
-    cursor: not-allowed;
-  }
-`;
-
-const RulesSection = styled.div`
-  margin-top: 0px;
-  padding-top: 0px;
-`;
-
-const RulesHeader = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 8px;
-  cursor: pointer;
-  border-radius: 6px;
-  transition: background-color 0.2s;
-
-  &:hover {
-    background-color: #2b2c2f;
-  }
-`;
-
-const RulesTitle = styled.span`
-  font-size: 14px;
-  color: #fff;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-`;
-
-const RulesCount = styled.span`
-  font-size: 12px;
-  color: #c5c5d2;
-  background-color: #2b2c2f;
-  padding: 2px 6px;
-  border-radius: 10px;
-  min-width: 20px;
-  text-align: center;
-`;
-
-const RulesList = styled.div<{ $isOpen: boolean }>`
-  max-height: ${props => props.$isOpen ? '300px' : '0'};
-  overflow-y: auto;
-  transition: max-height 0.3s ease;
-  margin-top: 8px;
-  padding-right: 4px;
-
-  /* Custom scrollbar styling */
-  &::-webkit-scrollbar {
-    width: 6px;
-  }
-
-  &::-webkit-scrollbar-track {
-    background: transparent;
-  }
-
-  &::-webkit-scrollbar-thumb {
-    background-color: #565869;
-    border-radius: 3px;
-  }
-
-  &::-webkit-scrollbar-thumb:hover {
-    background-color: #6b6c7b;
-  }
-`;
-
-const RuleItem = styled.div`
-  padding: 8px 12px;
-  font-size: 13px;
-  color: #c5c5d2;
-  border-radius: 4px;
-  margin-bottom: 4px;
-  background-color: #2b2c2f;
-`;
-
-const ChevronIcon = styled.span<{ $isOpen: boolean }>`
-  transform: rotate(${props => props.$isOpen ? '90deg' : '0deg'});
-  transition: transform 0.2s ease;
-  font-size: 12px;
-`;
-
-const WelcomeMessage = styled.div`
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-  padding: 40px 20px;
-  gap: 16px;
-  max-width: 600px;
-  width: 100%;
-`;
-
-const WelcomeTitle = styled.h1`
-  font-size: 32px;
-  color: #fff;
-  margin: 0;
-`;
-
-const WelcomeSubtitle = styled.p`
-  font-size: 16px;
-  color: #c5c5d2;
-  margin: 0;
-  line-height: 1.5;
-`;
-
-const WelcomeHighlight = styled.span`
-  color: #19c37d;
-  font-weight: bold;
-`;
-
-const ChatHistorySection = styled.div`
-  margin-bottom: 0px;
-  border-bottom: 1px solid #565869;
-  padding-bottom: 12px;
-`;
-
-const ChatHistoryHeader = styled.div`
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  padding: 8px;
-  margin-bottom: 8px;
-`;
-
-const ChatHistoryTitle = styled.span`
-  font-size: 14px;
-  color: #fff;
-  font-weight: 600;
-`;
-
-const ChatList = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  max-height: 300px;
-  overflow-y: auto;
-  padding-right: 4px;
-
-  /* Custom scrollbar styling */
-  &::-webkit-scrollbar {
-    width: 6px;
-  }
-
-  &::-webkit-scrollbar-track {
-    background: transparent;
-  }
-
-  &::-webkit-scrollbar-thumb {
-    background-color: #565869;
-    border-radius: 3px;
-  }
-
-  &::-webkit-scrollbar-thumb:hover {
-    background-color: #6b6c7b;
-  }
-`;
-
-const ChatItem = styled.div<{ $isActive: boolean }>`
-  padding: 8px 12px;
-  font-size: 13px;
-  color: ${props => props.$isActive ? '#fff' : '#c5c5d2'};
-  border-radius: 4px;
-  cursor: pointer;
-  background-color: ${props => props.$isActive ? '#19c37d' : 'transparent'};
-  transition: background-color 0.2s;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  group: relative;
-
-  &:hover {
-    background-color: ${props => props.$isActive ? '#19c37d' : '#2b2c2f'};
-  }
-`;
-
-const ChatTitle = styled.span`
-  flex: 1;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  padding: 2px 4px;
-  border-radius: 4px;
-`;
-
-const ChatTitleInput = styled.input`
-  flex: 1;
-  background: transparent;
-  border: 1px solid #565869;
-  border-radius: 4px;
-  color: inherit;
-  font-size: inherit;
-  font-family: inherit;
-  padding: 2px 4px;
-  outline: none;
-
-  &:focus {
-    border-color: #19c37d;
-  }
-`;
-
-const ActionButton = styled.button`
-  opacity: 0;
-  background: none;
-  border: none;
-  color: #c5c5d2;
-  cursor: pointer;
-  padding: 2px;
-  border-radius: 2px;
-  font-size: 12px;
-  width: 24px;
-  height: 24px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: opacity 0.2s;
-
-  ${ChatItem}:hover & {
-    opacity: 1;
-  }
-`;
-
-const EditButton = styled(ActionButton)`
-  transition: all 0.2s ease;
-  
-  &:hover {
-    color: #19c37d;
-    background-color: rgba(255, 107, 107, 0.1);
-    transform: scale(1.25);
-  }
-`;
-
-const DeleteButton = styled(ActionButton)`
-  margin-left: 4px;
-  transition: all 0.2s ease;
-  
-  &:hover {
-    color: #ff6b6b;
-    background-color: rgba(255, 107, 107, 0.1);
-    transform: scale(1.25);
-  }
-`;
-
-const PopupOverlay = styled.div`
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: rgba(0, 0, 0, 0.8);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-`;
-
-const PopupContent = styled.div`
-  background-color: #2b2c2f;
-  padding: 40px;
-  border-radius: 12px;
-  border: 2px solid #19c37d;
-  text-align: center;
-  max-width: 500px;
-  width: 90%;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-`;
-
-const PopupTitle = styled.h2`
-  color: #19c37d;
-  font-size: 28px;
-  margin: 0 0 16px 0;
-  font-weight: bold;
-`;
-
-const PopupMessage = styled.p`
-  color: #fff;
-  font-size: 16px;
-  line-height: 1.5;
-  margin: 0 0 24px 0;
-`;
-
-const PopupButton = styled.button`
-  background-color: #19c37d;
-  color: white;
-  border: none;
-  padding: 12px 24px;
-  border-radius: 8px;
-  font-size: 16px;
-  font-weight: bold;
-  cursor: pointer;
-  transition: background-color 0.2s;
-
-  &:hover {
-    background-color: #15a067;
-  }
-`;
-
-const LifeCounter = styled.div`
-  position: absolute;
-  top: 12px;
-  right: 12px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  background-color: rgba(32, 33, 35, 0.9);
-  padding: 8px 12px;
-  border-radius: 8px;
-  border: 1px solid #565869;
-  z-index: 5;
-`;
-
-const LifeCounterText = styled.span`
-  color: #fff;
-  font-size: 14px;
-  font-weight: 600;
-`;
-
-const LifeIcon = styled.span<{ $isActive: boolean }>`
-  opacity: ${props => props.$isActive ? '1' : '0.3'};
-  font-size: 16px;
-  transition: opacity 0.2s ease;
-  filter: ${props => props.$isActive ? 'none' : 'grayscale(100%)'};
-`;
+import { Message, Rule } from './types';
+import { AppContainer, MainContent, ToggleButton } from './styles/Layout';
+import { ChatContainer, InputContainer, InputForm, Input, SendButton } from './styles/Chat';
+import { SideDrawer, DrawerContent, NewChatButton, ResetButton, PlusIcon } from './styles/Sidebar';
+import { WelcomeMessage } from './components/WelcomeMessage';
+import { ChatMessage } from './components/ChatMessage';
+import { LifeCounter } from './components/LifeCounter';
+import { ChatHistory } from './components/ChatHistory';
+import { RulesSection } from './components/RulesSection';
+import { Popup } from './components/Popup';
+import { useChats } from './hooks/useChats';
+import { 
+  loadRulesFromStorage, 
+  saveRulesToStorage, 
+  loadLivesFromStorage, 
+  saveLivesToStorage,
+  clearAllStorage 
+} from './utils/localStorage';
+import { fetchRules } from './utils/chat';
 
 function App() {
-  // Load chats from localStorage on initialization
-  const loadChatsFromStorage = (): Chat[] => {
-    try {
-      const storedChats = localStorage.getItem('ai-prompting-game-chats');
-      if (storedChats) {
-        return JSON.parse(storedChats);
-      }
-    } catch (error) {
-      console.error('Error loading chats from localStorage:', error);
-    }
-    return [];
-  };
-
-  // Save chats to localStorage
-  const saveChatsToStorage = (chats: Chat[]) => {
-    try {
-      localStorage.setItem('ai-prompting-game-chats', JSON.stringify(chats));
-    } catch (error) {
-      console.error('Error saving chats to localStorage:', error);
-    }
-  };
-
-  // Load active chat ID from localStorage
-  const loadActiveChatIdFromStorage = (): string | null => {
-    try {
-      return localStorage.getItem('ai-prompting-game-active-chat-id');
-    } catch (error) {
-      console.error('Error loading active chat ID from localStorage:', error);
-    }
-    return null;
-  };
-
-  // Save active chat ID to localStorage
-  const saveActiveChatIdToStorage = (chatId: string | null) => {
-    try {
-      if (chatId) {
-        localStorage.setItem('ai-prompting-game-active-chat-id', chatId);
-      } else {
-        localStorage.removeItem('ai-prompting-game-active-chat-id');
-      }
-    } catch (error) {
-      console.error('Error saving active chat ID to localStorage:', error);
-    }
-  };
-
-  // Load rules from localStorage
-  const loadRulesFromStorage = (): Rule[] => {
-    try {
-      const storedRules = localStorage.getItem('ai-prompting-game-rules');
-      if (storedRules) {
-        return JSON.parse(storedRules);
-      }
-    } catch (error) {
-      console.error('Error loading rules from localStorage:', error);
-    }
-    return [];
-  };
-
-  // Save rules to localStorage
-  const saveRulesToStorage = (rules: Rule[]) => {
-    try {
-      localStorage.setItem('ai-prompting-game-rules', JSON.stringify(rules));
-    } catch (error) {
-      console.error('Error saving rules to localStorage:', error);
-    }
-  };
-
-  // Load lives from localStorage
-  const loadLivesFromStorage = (): number => {
-    try {
-      const storedLives = localStorage.getItem('ai-prompting-game-lives');
-      if (storedLives) {
-        return parseInt(storedLives, 10);
-      }
-    } catch (error) {
-      console.error('Error loading lives from localStorage:', error);
-    }
-    return 3; // Default to 3 lives
-  };
-
-  // Save lives to localStorage
-  const saveLivesToStorage = (lives: number) => {
-    try {
-      localStorage.setItem('ai-prompting-game-lives', lives.toString());
-    } catch (error) {
-      console.error('Error saving lives to localStorage:', error);
-    }
-  };
-
-  const [chats, setChats] = useState<Chat[]>(loadChatsFromStorage);
-  const [activeChatId, setActiveChatId] = useState<string | null>(loadActiveChatIdFromStorage);
+  const {
+    chats,
+    activeChatId,
+    currentMessages,
+    createNewChat,
+    addMessageToChat,
+    updateMessageInChat,
+    markChatAsComplete,
+    selectChat,
+    deleteChat,
+    renameChat,
+    clearAllChats,
+    setActiveChatId
+  } = useChats();
   const [inputValue, setInputValue] = useState('');
   const [isDrawerOpen, setIsDrawerOpen] = useState(true);
   const [isRulesOpen, setIsRulesOpen] = useState(false);
@@ -648,18 +45,10 @@ function App() {
   const [editingTitle, setEditingTitle] = useState('');
   const [lives, setLives] = useState<number>(loadLivesFromStorage);
   const [showResetConfirm, setShowResetConfirm] = useState(false);
+  const [showGameOverPopup, setShowGameOverPopup] = useState(false);
+  const [hasSeenGameOver, setHasSeenGameOver] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
-
-  // Save chats to localStorage whenever chats change
-  useEffect(() => {
-    saveChatsToStorage(chats);
-  }, [chats]);
-
-  // Save active chat ID to localStorage whenever it changes
-  useEffect(() => {
-    saveActiveChatIdToStorage(activeChatId);
-  }, [activeChatId]);
 
   // Save rules to localStorage whenever rules change
   useEffect(() => {
@@ -671,60 +60,12 @@ function App() {
     saveLivesToStorage(lives);
   }, [lives]);
 
-  // Get current chat messages
-  const currentMessages = chats.find(chat => chat.id === activeChatId)?.messages || [];
-
-  // Generate chat title from first message
-  const generateChatTitle = (firstMessage: string): string => {
-    const words = firstMessage.trim().split(' ');
-    const title = words.slice(0, 6).join(' ');
-    return title.length > 50 ? title.substring(0, 47) + '...' : title;
-  };
-
-  // Create a new chat
-  const createNewChat = (skipCheck: boolean = false): string => {
-
-    let nextNumber = 1;
-    const newChatId = `chat_${Date.now()}`;
-
-    if (!skipCheck) {
-      // Count existing "Attempt" titles to determine the next number
-      const newChatPattern = /^Attempt (\d+)$/;
-      const existingNewChatNumbers = chats
-        .filter(chat => newChatPattern.test(chat.title))
-        .map(chat => {
-          const match = chat.title.match(/^Attempt (\d+)$/);
-          return match ? parseInt(match[1], 10) : 0;
-        })
-        .sort((a, b) => a - b);
-      
-
-      for (const num of existingNewChatNumbers) {
-        if (num === nextNumber) {
-          nextNumber++;
-        } else {
-          break;
-        }
-      }
+  // Show game over popup when lives reach 0
+  useEffect(() => {
+    if (lives <= 0 && !showGameOverPopup && !hasSeenGameOver) {
+      setShowGameOverPopup(true);
     }
-
-    const newChat: Chat = {
-      id: newChatId,
-      title: `Attempt ${nextNumber}`,
-      messages: [],
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-      isSessionComplete: false
-    };
-    
-    setChats(prev => [newChat, ...prev]);
-    setActiveChatId(newChatId);
-    
-    // Fetch updated rules when creating a new chat
-    fetchRules();
-    
-    return newChatId;
-  };
+  }, [lives, showGameOverPopup, hasSeenGameOver]);
 
   // Reset all state and localStorage
   const handleResetAll = () => {
@@ -733,18 +74,15 @@ function App() {
 
   const handleConfirmReset = () => {
     // Clear all localStorage
-    localStorage.removeItem('ai-prompting-game-chats');
-    localStorage.removeItem('ai-prompting-game-active-chat-id');
-    localStorage.removeItem('ai-prompting-game-rules');
-    localStorage.removeItem('ai-prompting-game-lives');
+    clearAllStorage();
     
     // Reset all state
-    setChats([]);
-    setActiveChatId(null);
+    clearAllChats();
     setRules([]);
     setLives(3);
     setIsSessionComplete(false);
     setHasSeenCongratulations(false);
+    setHasSeenGameOver(false);
     setInputValue('');
     setIsStreaming(false);
     setEditingChatId(null);
@@ -754,12 +92,22 @@ function App() {
     // Create a new chat and fetch fresh rules
     setTimeout(() => {
       createNewChat(true);
-      fetchRules();
+      handleFetchRules();
     }, 0);
   };
 
   const handleCancelReset = () => {
     setShowResetConfirm(false);
+  };
+
+  const handleGameOverDismiss = () => {
+    setShowGameOverPopup(false);
+    setHasSeenGameOver(true);
+  };
+
+  const handleGameOverReset = () => {
+    setShowGameOverPopup(false);
+    handleResetAll();
   };
 
   // Initialize with first chat and validate active chat ID
@@ -776,7 +124,7 @@ function App() {
         setActiveChatId(chats[0].id);
       }
     }
-  }, []);
+  }, [chats, activeChatId, createNewChat, setActiveChatId]);
 
   // Load isSessionComplete state when active chat changes
   useEffect(() => {
@@ -787,10 +135,9 @@ function App() {
   }, [activeChatId, chats]);
 
   // Fetch rules from API
-  const fetchRules = async () => {
+  const handleFetchRules = async () => {
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/rules`);
-      const data = await response.json();
+      const data = await fetchRules();
       setRules(data);
     } catch (error) {
       console.error('Error fetching rules:', error);
@@ -805,11 +152,11 @@ function App() {
     // Only fetch rules from API if we don't have any in localStorage
     if (rules.length === 0) {
       // Clear the chat history and create a new chat
-      setChats([]);
+      clearAllChats();
       createNewChat(true);
-      fetchRules();
+      handleFetchRules();
     }
-  }, []);
+  }, [rules.length, clearAllChats, createNewChat]);
 
   // Auto-scroll to bottom when messages change
   useEffect(() => {
@@ -831,9 +178,6 @@ function App() {
     e.preventDefault();
     if (!inputValue.trim() || isStreaming || isSessionComplete || lives <= 0) return;
     
-    // Decrease lives on message submission
-    setLives(prev => prev - 1);
-    
     // Ensure we have an active chat
     let currentChatId = activeChatId;
     if (!currentChatId) {
@@ -848,22 +192,11 @@ function App() {
       isUser: true,
     };
 
-    // Update chat with user message
-    setChats(prev => prev.map(chat => {
-      if (chat.id === currentChatId) {
-        const updatedMessages = [...chat.messages, userMessage];
-        const title = chat.messages.length === 0 ? generateChatTitle(inputValue) : chat.title;
-        return {
-          ...chat,
-          messages: updatedMessages,
-          title,
-          updatedAt: new Date().toISOString()
-        };
-      }
-      return chat;
-    }));
-
+    // Add user message to chat
+    addMessageToChat(currentChatId, userMessage);
     setInputValue('');
+
+    let sessionCompleted = false;
 
     try {
       // Send message to backend
@@ -891,16 +224,7 @@ function App() {
       };
       
       // Add AI message to chat
-      setChats(prev => prev.map(chat => {
-        if (chat.id === currentChatId) {
-          return {
-            ...chat,
-            messages: [...chat.messages, aiMessage],
-            updatedAt: new Date().toISOString()
-          };
-        }
-        return chat;
-      }));
+      addMessageToChat(currentChatId, aiMessage);
 
       // Get the response reader
       const reader = response.body?.getReader();
@@ -929,40 +253,18 @@ function App() {
                 const { message: word, is_done } = response;
                 
                 // Update the AI message with the new word
-                setChats(prev => prev.map(chat => {
-                  if (chat.id === currentChatId) {
-                    const updatedMessages = [...chat.messages];
-                    const lastMessage = updatedMessages[updatedMessages.length - 1];
-                    if (!lastMessage.isUser) {
-                      lastMessage.text += word;
-                    }
-                    return {
-                      ...chat,
-                      messages: updatedMessages,
-                      updatedAt: new Date().toISOString()
-                    };
-                  }
-                  return chat;
-                }));
+                updateMessageInChat(currentChatId, aiMessage.id, aiMessage.text + word);
+                aiMessage.text += word;
                 
                 // If session is done, break the outer loop
                 if (is_done) {
+                  sessionCompleted = true;
                   setIsSessionComplete(true);
                   setHasSeenCongratulations(false); // Reset flag for new completion
                   setLives(3); // Refill lives when password is found
+                  setHasSeenGameOver(false); // Reset game over flag when lives are restored
                   // Update the chat to mark it as complete
-                  setChats(prev => prev.map(chat => {
-                    if (chat.id === currentChatId) {
-                      return {
-                        ...chat,
-                        isSessionComplete: true,
-                        updatedAt: new Date().toISOString()
-                      };
-                    }
-                    return chat;
-                  }));
-                  // reader.cancel();
-                  // return;
+                  markChatAsComplete(currentChatId);
                 }
               }
             } catch (parseError) {
@@ -975,23 +277,23 @@ function App() {
         await new Promise(resolve => setTimeout(resolve, 10));
       }
       
+      // Decrease lives only after submission completes and session is not done
+      if (!sessionCompleted) {
+        setLives(prev => prev - 1);
+      }
+      
     } catch (error) {
       console.error('Error:', error);
-      setChats(prev => prev.map(chat => {
-        if (chat.id === currentChatId) {
-          return {
-            ...chat,
-            messages: [...chat.messages, {
-              id: Date.now() + 2,
-              text: 'Sorry, there was an error processing your message.',
-              isUser: false,
-              timestamp: new Date().toISOString()
-            }],
-            updatedAt: new Date().toISOString()
-          };
-        }
-        return chat;
-      }));
+      const errorMessage: Message = {
+        id: Date.now() + 2,
+        text: 'Sorry, there was an error processing your message.',
+        isUser: false,
+        timestamp: new Date().toISOString()
+      };
+      addMessageToChat(currentChatId, errorMessage);
+      
+      // Decrease lives on error as well (failed submission)
+      setLives(prev => prev - 1);
     } finally {
       setIsStreaming(false);
     }
@@ -1002,11 +304,10 @@ function App() {
     setInputValue('');
     setIsSessionComplete(false);
     setHasSeenCongratulations(true); // Mark that user has seen and dismissed the congratulations
-    setLives(3); // Reset lives when starting new attempt
   };
 
   const handleChatSelect = (chatId: string) => {
-    setActiveChatId(chatId);
+    selectChat(chatId);
     // Load the isSessionComplete state from the selected chat
     const selectedChat = chats.find(chat => chat.id === chatId);
     setIsSessionComplete(selectedChat?.isSessionComplete || false);
@@ -1014,21 +315,7 @@ function App() {
 
   const handleDeleteChat = (chatId: string, e: React.MouseEvent) => {
     e.stopPropagation();
-    setChats(prev => {
-      const updatedChats = prev.filter(chat => chat.id !== chatId);
-      
-      // If we deleted the active chat, select another one or create new
-      if (chatId === activeChatId) {
-        if (updatedChats.length > 0) {
-          setActiveChatId(updatedChats[0].id);
-        } else {
-          // Create a new chat if no chats remain
-          setTimeout(() => createNewChat(), 0);
-        }
-      }
-      
-      return updatedChats;
-    });
+    deleteChat(chatId);
   };
 
   const handleStartRename = (chatId: string, currentTitle: string, e: React.MouseEvent) => {
@@ -1039,11 +326,7 @@ function App() {
 
   const handleSaveRename = (chatId: string) => {
     if (editingTitle.trim()) {
-      setChats(prev => prev.map(chat => 
-        chat.id === chatId 
-          ? { ...chat, title: editingTitle.trim(), updatedAt: new Date().toISOString() }
-          : chat
-      ));
+      renameChat(chatId, editingTitle);
     }
     setEditingChatId(null);
     setEditingTitle('');
@@ -1082,25 +365,47 @@ function App() {
   return (
     <AppContainer>
       {isSessionComplete && !hasSeenCongratulations && (
-        <PopupOverlay>
-          <PopupContent>
-            <PopupTitle>🎉 Congratulations! 🎉</PopupTitle>
-            <PopupMessage>
+        <Popup
+          title="🎉 Congratulations! 🎉"
+          message={
+            <>
               You've successfully found the password! The AI has become smarter and new challenges await.
               <br /><br />
               Start a new attempt to continue your journey!
-            </PopupMessage>
-            <PopupButton onClick={handleNewChat}>
-              New Attempt
-            </PopupButton>
-          </PopupContent>
-        </PopupOverlay>
+            </>
+          }
+          primaryButton={{
+            text: "New Attempt",
+            onClick: handleNewChat
+          }}
+        />
+      )}
+      {showGameOverPopup && (
+        <Popup
+          title="💀 Game Over 💀"
+          message={
+            <>
+              You've run out of lives! The AI has proven too clever this time.
+              <br /><br />
+              You can start a new attempt with fresh lives, or reset everything to start from the beginning.
+            </>
+          }
+          secondaryButton={{
+            text: "Reset Everything",
+            onClick: handleGameOverReset,
+            style: { backgroundColor: '#ff6b6b' }
+          }}
+          primaryButton={{
+            text: "Dismiss",
+            onClick: handleGameOverDismiss
+          }}
+        />
       )}
       {showResetConfirm && (
-        <PopupOverlay>
-          <PopupContent>
-            <PopupTitle>⚠️ Reset Everything ⚠️</PopupTitle>
-            <PopupMessage>
+        <Popup
+          title="⚠️ Reset Everything ⚠️"
+          message={
+            <>
               Are you sure you want to reset everything? This will permanently delete:
               <br /><br />
               • All chat history and attempts
@@ -1110,17 +415,19 @@ function App() {
               • Your current lives and session
               <br /><br />
               <strong>This action cannot be undone.</strong>
-            </PopupMessage>
-            <div style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
-              <PopupButton onClick={handleCancelReset} style={{ backgroundColor: '#565869', color: '#fff' }}>
-                Cancel
-              </PopupButton>
-              <PopupButton onClick={handleConfirmReset} style={{ backgroundColor: '#ff6b6b' }}>
-                Reset Everything
-              </PopupButton>
-            </div>
-          </PopupContent>
-        </PopupOverlay>
+            </>
+          }
+          secondaryButton={{
+            text: "Cancel",
+            onClick: handleCancelReset,
+            style: { backgroundColor: '#565869', color: '#fff' }
+          }}
+          primaryButton={{
+            text: "Reset Everything",
+            onClick: handleConfirmReset,
+            style: { backgroundColor: '#ff6b6b' }
+          }}
+        />
       )}
       <SideDrawer $isOpen={isDrawerOpen}>
         <DrawerContent>
@@ -1129,56 +436,25 @@ function App() {
             New Attempt
           </NewChatButton>
           
-          <ChatHistorySection>
-            <ChatHistoryHeader>
-              <ChatHistoryTitle>Chat History</ChatHistoryTitle>
-            </ChatHistoryHeader>
-            <ChatList>
-              {chats.map((chat) => (
-                <ChatItem 
-                  key={chat.id} 
-                  $isActive={chat.id === activeChatId}
-                  onClick={() => handleChatSelect(chat.id)}
-                >
-                  {editingChatId === chat.id ? (
-                    <ChatTitleInput
-                      value={editingTitle}
-                      onChange={(e) => setEditingTitle(e.target.value)}
-                      onKeyDown={(e) => handleRenameKeyDown(e, chat.id)}
-                      onBlur={() => handleSaveRename(chat.id)}
-                      autoFocus
-                      onClick={(e) => e.stopPropagation()}
-                    />
-                  ) : (
-                    <ChatTitle>
-                      {chat.title}
-                    </ChatTitle>
-                  )}
-                  <EditButton onClick={(e) => handleStartRename(chat.id, chat.title, e)}>
-                    ✏️
-                  </EditButton>
-                  <DeleteButton onClick={(e) => handleDeleteChat(chat.id, e)}>
-                    ×
-                  </DeleteButton>
-                </ChatItem>
-              ))}
-            </ChatList>
-          </ChatHistorySection>
+          <ChatHistory
+            chats={chats}
+            activeChatId={activeChatId}
+            editingChatId={editingChatId}
+            editingTitle={editingTitle}
+            onChatSelect={handleChatSelect}
+            onStartRename={handleStartRename}
+            onSaveRename={handleSaveRename}
+            onCancelRename={handleCancelRename}
+            onRenameKeyDown={handleRenameKeyDown}
+            onDeleteChat={handleDeleteChat}
+            onEditingTitleChange={setEditingTitle}
+          />
           
-          <RulesSection>
-            <RulesHeader onClick={toggleRules}>
-              <ChevronIcon $isOpen={isRulesOpen}>›</ChevronIcon>
-              <RulesTitle>
-                AI Rules
-                <RulesCount>{rules.length}</RulesCount>
-              </RulesTitle>
-            </RulesHeader>
-            <RulesList $isOpen={isRulesOpen}>
-              {rules.map((rule, index) => (
-                <RuleItem key={index}>{rule.title}</RuleItem>
-              ))}
-            </RulesList>
-          </RulesSection>
+          <RulesSection
+            rules={rules}
+            isRulesOpen={isRulesOpen}
+            onToggleRules={toggleRules}
+          />
           
           <div style={{ marginTop: 'auto', paddingTop: '12px' }}>
             <ResetButton onClick={handleResetAll}>
@@ -1194,20 +470,11 @@ function App() {
         </ToggleButton>
         <ChatContainer>
           {currentMessages.length === 0 ? (
-            <WelcomeMessage>
-              <WelcomeTitle>Find the Password</WelcomeTitle>
-              <WelcomeSubtitle>
-                Every time you find the password, the AI becomes <WelcomeHighlight>smarter</WelcomeHighlight>.
-                <br />
-                Can you discover all the secrets?
-              </WelcomeSubtitle>
-            </WelcomeMessage>
+            <WelcomeMessage />
           ) : (
             <>
               {currentMessages.map(message => (
-                <MessageBubble key={message.id} $isUser={message.isUser}>
-                  {message.text}
-                </MessageBubble>
+                <ChatMessage key={message.id} message={message} />
               ))}
               <div ref={messagesEndRef} />
             </>
@@ -1229,14 +496,7 @@ function App() {
           </InputForm>
         </InputContainer>
       </MainContent>
-              <LifeCounter>
-          <LifeCounterText>Lives:</LifeCounterText>
-          {[1, 2, 3].map(heartNumber => (
-            <LifeIcon key={heartNumber} $isActive={lives >= heartNumber}>
-              ❤️
-            </LifeIcon>
-          ))}
-        </LifeCounter>
+      <LifeCounter lives={lives} />
     </AppContainer>
   );
 }
