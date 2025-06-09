@@ -184,6 +184,13 @@ function App() {
     }
   }, [inputValue]);
 
+  // Focus textarea when streaming completes
+  useEffect(() => {
+    if (!isStreaming && !isSessionComplete && lives > 0) {
+      textareaRef.current?.focus();
+    }
+  }, [isStreaming, isSessionComplete, lives]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!inputValue.trim() || isStreaming || isSessionComplete || lives <= 0) return;
