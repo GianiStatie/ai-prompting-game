@@ -56,7 +56,7 @@ class AbstractModel:
         ])
 
         chain = prompt | self.llm
-        response = chain.invoke({"chat_history": self._format_chat_history(chat_history), "password": password})
+        response = chain.invoke({"chat_history": self._format_chat_history(chat_history), "password": password, "rules": "\n".join(self.llm_rules)})
 
         response_text = response.content
         if self.thinking:
