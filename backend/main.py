@@ -2,12 +2,15 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import List
-import uvicorn
 
+import dotenv
+import uvicorn
 from fastapi.responses import StreamingResponse
 
 from src.agent import Agent
 
+# Setup environment
+dotenv.load_dotenv()
 app = FastAPI()
 agent = Agent()
 
@@ -39,7 +42,8 @@ async def read_root():
 
 @app.get("/api/rules", response_model=List[Rule])
 async def get_rules():
-    return [Rule(id=i, title=rule, description=rule) for i, rule in enumerate(agent.llm_rules)]
+    llm_rules = agent.get_llm_rules()
+    return [Rule(id=i, title=rule, description=rule) for i, rule in enumerate(llm_rules)]
 
 @app.post("/api/chat", response_model=ChatResponse)
 async def chat(message: Message, chat_history: List[Message]):
