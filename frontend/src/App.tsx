@@ -243,9 +243,7 @@ function App() {
       }
 
       // Read the stream
-      while (true) {
-        const chunkStartTime = performance.now();
-        
+      while (true) {        
         const { done, value } = await reader.read();
         if (done) break;
 
@@ -258,6 +256,8 @@ function App() {
         for (const line of lines) {
           if (line.startsWith('data: ')) {
             try {
+              const chunkStartTime = performance.now();
+
               // Extract JSON from SSE format
               const jsonStr = line.substring(6); // Remove "data: " prefix
               if (jsonStr.trim()) {
@@ -267,6 +267,16 @@ function App() {
                 // Update the AI message with the new word
                 updateMessageInChat(currentChatId, aiMessage.id, aiMessage.text + word);
                 aiMessage.text += word;
+
+                // Calculate elapsed time for processing this chunk
+                const chunkElapsedTime = performance.now() - chunkStartTime;
+                console.log('Chunk elapsed time:', chunkElapsedTime);
+                
+                // Ensure minimum delay between chunks for smooth streaming
+                if (chunkElapsedTime < GAME_CONFIG.STREAMING_DELAY_MS) {
+                  const remainingDelay = Math.max(0, GAME_CONFIG.STREAMING_DELAY_MS - chunkElapsedTime);
+                  await new Promise(resolve => setTimeout(resolve, remainingDelay));
+                }
                 
                 // If session is done, break the outer loop
                 if (is_done) {
@@ -284,15 +294,6 @@ function App() {
               console.error('Error parsing SSE JSON:', parseError, 'Line:', line);
             }
           }
-        }
-        
-        // Calculate elapsed time for processing this chunk
-        const chunkElapsedTime = performance.now() - chunkStartTime;
-        
-        // Only wait if the chunk processed faster than STREAMING_DELAY
-        if (chunkElapsedTime < GAME_CONFIG.STREAMING_DELAY) {
-          const remainingDelay = GAME_CONFIG.STREAMING_DELAY - chunkElapsedTime;
-          await new Promise(resolve => setTimeout(resolve, remainingDelay));
         }
       }
       

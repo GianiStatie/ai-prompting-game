@@ -7,7 +7,7 @@ export const GAME_CONFIG = {
   MAX_TEXTAREA_HEIGHT: 120,
   
   // Delay between streaming chunks (in milliseconds)
-  STREAMING_DELAY: 20,
+  STREAMING_DELAY_MS: 42,
 } as const;
 
 // Export individual values for convenience
