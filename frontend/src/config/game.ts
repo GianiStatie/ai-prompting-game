@@ -1,7 +1,7 @@
 // Game configuration constants
 export const GAME_CONFIG = {
   // Number of lives players start with and are restored to when password is found
-  DEFAULT_LIVES: 5,
+  DEFAULT_LIVES: 3,
   
   // Maximum height for the textarea input (in pixels)
   MAX_TEXTAREA_HEIGHT: 120,

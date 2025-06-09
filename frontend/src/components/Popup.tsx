@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { PopupOverlay, PopupContent, PopupTitle, PopupMessage, PopupButton } from '../styles/Popup';
 
 interface PopupProps {
@@ -22,6 +22,18 @@ export const Popup: React.FC<PopupProps> = ({
   primaryButton, 
   secondaryButton 
 }) => {
+  // Add keyboard event handler for Enter key
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Enter') {
+        primaryButton.onClick();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [primaryButton]);
+
   return (
     <PopupOverlay>
       <PopupContent>
