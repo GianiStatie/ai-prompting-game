@@ -19,34 +19,34 @@ class Agent:
     def get_llm_rules(self) -> List[str]:
         return self.model.llm_rules
 
-    def process_message(self, message: str, chat_history: List[str] = []) -> str:
+    def process_message(self, message: str, chat_history: List[str] = []) -> tuple[str, bool]:
         if self.password in message:
             self.model.update_rules(chat_history, self.password)
             self.password = self.generate_password()
             print(f"New Password: {self.password}")
-            return self.model.build_congratulations()
+            return self.model.build_congratulations(), True
 
         response = self.model.build_message(message, self.password, chat_history)
-        return response
-        
-    def stream_message(self, message: str, chat_history: List[str] = []) -> Generator[str]:
+        return response, False
+
+    def stream_message(self, message: str, chat_history: List[str] = []) -> Generator[tuple[str, bool]]:
         if self.password in message:
             self.model.update_rules(chat_history, self.password)
             self.password = self.generate_password()
             print(f"New Password: {self.password}")
             for chunk in self.model.stream_congratulations():
-                yield chunk
-            return
+                yield (chunk, True)
 
-        try:
-            for chunk in self.model.stream_message(message, self.password, chat_history):
-                yield chunk
-            
-        except Exception as e:
-            error_message = f"Error processing message: {str(e)} \n\n {traceback.format_exc()}"
-            words = error_message.split()
-            for word in words:
-                yield word
+        else:
+            try:
+                for chunk in self.model.stream_message(message, self.password, chat_history):
+                    yield (chunk, False)
+                
+            except Exception as e:
+                error_message = f"Error processing message: {str(e)} \n\n {traceback.format_exc()}"
+                words = error_message.split()
+                for word in words:
+                    yield (word, False)
         
 
     def generate_password(self):

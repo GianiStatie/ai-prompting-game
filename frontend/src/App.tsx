@@ -430,6 +430,60 @@ const DeleteButton = styled(ActionButton)`
   }
 `;
 
+const PopupOverlay = styled.div`
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+`;
+
+const PopupContent = styled.div`
+  background-color: #2b2c2f;
+  padding: 40px;
+  border-radius: 12px;
+  border: 2px solid #19c37d;
+  text-align: center;
+  max-width: 500px;
+  width: 90%;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+`;
+
+const PopupTitle = styled.h2`
+  color: #19c37d;
+  font-size: 28px;
+  margin: 0 0 16px 0;
+  font-weight: bold;
+`;
+
+const PopupMessage = styled.p`
+  color: #fff;
+  font-size: 16px;
+  line-height: 1.5;
+  margin: 0 0 24px 0;
+`;
+
+const PopupButton = styled.button`
+  background-color: #19c37d;
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.2s;
+
+  &:hover {
+    background-color: #15a067;
+  }
+`;
+
 function App() {
   // Load chats from localStorage on initialization
   const loadChatsFromStorage = (): Chat[] => {
@@ -483,6 +537,7 @@ function App() {
   const [isRulesOpen, setIsRulesOpen] = useState(false);
   const [rules, setRules] = useState<Rule[]>([]);
   const [isStreaming, setIsStreaming] = useState(false);
+  const [isSessionComplete, setIsSessionComplete] = useState(false);
   const [editingChatId, setEditingChatId] = useState<string | null>(null);
   const [editingTitle, setEditingTitle] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -509,29 +564,32 @@ function App() {
   };
 
   // Create a new chat
-  const createNewChat = (): string => {
-    const newChatId = `chat_${Date.now()}`;
-    
-    // Count existing "New Chat" titles to determine the next number
-    const newChatPattern = /^Attempt ( \d+)?$/;
-    const existingNewChatNumbers = chats
-      .filter(chat => newChatPattern.test(chat.title))
-      .map(chat => {
-        const match = chat.title.match(/^Attempt ( (\d+))?$/);
-        return match && match[2] ? parseInt(match[2], 10) : 1;
-      })
-      .sort((a, b) => a - b);
-    
-    // Find the next available number
+  const createNewChat = (skipCheck: boolean = false): string => {
+
     let nextNumber = 1;
-    for (const num of existingNewChatNumbers) {
-      if (num === nextNumber) {
-        nextNumber++;
-      } else {
-        break;
+    const newChatId = `chat_${Date.now()}`;
+
+    if (!skipCheck) {
+      // Count existing "Attempt" titles to determine the next number
+      const newChatPattern = /^Attempt (\d+)$/;
+      const existingNewChatNumbers = chats
+        .filter(chat => newChatPattern.test(chat.title))
+        .map(chat => {
+          const match = chat.title.match(/^Attempt (\d+)$/);
+          return match ? parseInt(match[1], 10) : 0;
+        })
+        .sort((a, b) => a - b);
+      
+
+      for (const num of existingNewChatNumbers) {
+        if (num === nextNumber) {
+          nextNumber++;
+        } else {
+          break;
+        }
       }
     }
-    
+
     const newChat: Chat = {
       id: newChatId,
       title: `Attempt ${nextNumber}`,
@@ -548,7 +606,7 @@ function App() {
   // Initialize with first chat and validate active chat ID
   useEffect(() => {
     if (chats.length === 0) {
-      createNewChat();
+      createNewChat(true);
     } else {
       // Validate that the active chat ID exists in the loaded chats
       if (activeChatId && !chats.find(chat => chat.id === activeChatId)) {
@@ -593,7 +651,7 @@ function App() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!inputValue.trim() || isStreaming) return;
+    if (!inputValue.trim() || isStreaming || isSessionComplete) return;
     
     // Ensure we have an active chat
     let currentChatId = activeChatId;
@@ -674,28 +732,53 @@ function App() {
         const { done, value } = await reader.read();
         if (done) break;
 
-        // Convert the chunk to text
-        const word = new TextDecoder().decode(value);
+        // Convert the chunk to text and parse SSE format
+        const chunk = new TextDecoder().decode(value);
         
-        // Update the AI message with the new word
-        setChats(prev => prev.map(chat => {
-          if (chat.id === currentChatId) {
-            const updatedMessages = [...chat.messages];
-            const lastMessage = updatedMessages[updatedMessages.length - 1];
-            if (!lastMessage.isUser) {
-              lastMessage.text += word;
+        // Split by lines and process each SSE message
+        const lines = chunk.split('\n');
+        
+        for (const line of lines) {
+          if (line.startsWith('data: ')) {
+            try {
+              // Extract JSON from SSE format
+              const jsonStr = line.substring(6); // Remove "data: " prefix
+              if (jsonStr.trim()) {
+                const response = JSON.parse(jsonStr);
+                const { message: word, is_done } = response;
+                
+                // Update the AI message with the new word
+                setChats(prev => prev.map(chat => {
+                  if (chat.id === currentChatId) {
+                    const updatedMessages = [...chat.messages];
+                    const lastMessage = updatedMessages[updatedMessages.length - 1];
+                    if (!lastMessage.isUser) {
+                      lastMessage.text += word;
+                    }
+                    return {
+                      ...chat,
+                      messages: updatedMessages,
+                      updatedAt: new Date().toISOString()
+                    };
+                  }
+                  return chat;
+                }));
+                
+                // If session is done, break the outer loop
+                if (is_done) {
+                  setIsSessionComplete(true);
+                  // reader.cancel();
+                  // return;
+                }
+              }
+            } catch (parseError) {
+              console.error('Error parsing SSE JSON:', parseError, 'Line:', line);
             }
-            return {
-              ...chat,
-              messages: updatedMessages,
-              updatedAt: new Date().toISOString()
-            };
           }
-          return chat;
-        }));
+        }
         
-        // Add a small delay between words for better readability
-        await new Promise(resolve => setTimeout(resolve, 1));
+        // Add a small delay between chunks for better readability
+        await new Promise(resolve => setTimeout(resolve, 10));
       }
       
     } catch (error) {
@@ -723,10 +806,12 @@ function App() {
   const handleNewChat = () => {
     createNewChat();
     setInputValue('');
+    setIsSessionComplete(false);
   };
 
   const handleChatSelect = (chatId: string) => {
     setActiveChatId(chatId);
+    setIsSessionComplete(false);
   };
 
   const handleDeleteChat = (chatId: string, e: React.MouseEvent) => {
@@ -798,6 +883,21 @@ function App() {
 
   return (
     <AppContainer>
+      {isSessionComplete && (
+        <PopupOverlay>
+          <PopupContent>
+            <PopupTitle>🎉 Congratulations! 🎉</PopupTitle>
+            <PopupMessage>
+              You've successfully found the password! The AI has become smarter and new challenges await.
+              <br /><br />
+              Start a new attempt to continue your journey!
+            </PopupMessage>
+            <PopupButton onClick={handleNewChat}>
+              New Attempt
+            </PopupButton>
+          </PopupContent>
+        </PopupOverlay>
+      )}
       <SideDrawer $isOpen={isDrawerOpen}>
         <DrawerContent>
           <NewChatButton onClick={handleNewChat}>
@@ -891,8 +991,8 @@ function App() {
               onKeyDown={handleKeyDown}
               placeholder="Type your message..."
             />
-            <SendButton type="submit" disabled={isStreaming}>
-              {isStreaming ? 'Sending...' : 'Send'}
+            <SendButton type="submit" disabled={isStreaming || isSessionComplete}>
+              {isStreaming ? 'Sending...' : isSessionComplete ? 'Complete' : 'Send'}
             </SendButton>
           </InputForm>
         </InputContainer>

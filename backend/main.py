@@ -1,3 +1,4 @@
+import json
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
@@ -30,6 +31,7 @@ class Message(BaseModel):
 
 class ChatResponse(BaseModel):
     message: str
+    is_done: bool
 
 class Rule(BaseModel):
     id: int
@@ -47,13 +49,16 @@ async def get_rules():
 
 @app.post("/api/chat", response_model=ChatResponse)
 async def chat(message: Message, chat_history: List[Message]):
-    response = agent.process_message(message.text, chat_history)
-    return ChatResponse(message=response["response"])
+    response, is_done = agent.process_message(message.text, chat_history)
+    return ChatResponse(message=response, is_done=is_done)
 
-@app.post("/api/chat-stream", response_model=ChatResponse)
+@app.post("/api/chat-stream")
 async def stream(message: Message, chat_history: List[Message]):
-    response = agent.stream_message(message.text, chat_history)
-    return StreamingResponse(response, media_type="text/event-stream")
+    def generate():
+        for chunk, is_done in agent.stream_message(message.text, chat_history):
+            yield f"data: {json.dumps({'message': chunk, 'is_done': is_done})}\n\n"
+    
+    return StreamingResponse(generate(), media_type="text/event-stream")
 
 if __name__ == "__main__":
     uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True) 
