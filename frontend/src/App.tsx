@@ -93,6 +93,7 @@ function App() {
     setEditingChatId(null);
     setEditingTitle('');
     setShowResetConfirm(false);
+    setShowGameOverPopup(false);
 
     // Call reset game endpoint
     fetch(`${import.meta.env.VITE_API_URL}/api/reset-game`);
