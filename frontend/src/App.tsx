@@ -490,6 +490,10 @@ function App() {
         <ToggleButton onClick={toggleDrawer}>
           {isDrawerOpen ? '←' : '→'}
         </ToggleButton>
+        <CountersContainer>
+          <LifeCounter lives={lives} />
+          <AILevelCounter rules={rules} />
+        </CountersContainer>
         <ChatContainer>
           {currentMessages.length === 0 ? (
             <WelcomeMessage />
@@ -518,10 +522,6 @@ function App() {
           </InputForm>
         </InputContainer>
       </MainContent>
-      <CountersContainer>
-        <AILevelCounter rules={rules} />
-        <LifeCounter lives={lives} />
-      </CountersContainer>
     </AppContainer>
   );
 }

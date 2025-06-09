@@ -120,9 +120,8 @@ export const WelcomeTitle = styled.h1`
   font-size: 32px;
   font-weight: 700;
   margin: 0;
-  display: flex;
-  align-items: center;
-  gap: 12px;
+  position: relative;
+  display: inline-block;
 `;
 
 export const WelcomeSubtitle = styled.p`
@@ -149,6 +148,10 @@ export const InfoButton = styled.button`
   justify-content: center;
   border-radius: 50%;
   transition: all 0.2s ease;
+  position: absolute;
+  right: -40px;
+  top: 50%;
+  transform: translateY(-50%);
 
   &:hover {
     color: #19c37d;

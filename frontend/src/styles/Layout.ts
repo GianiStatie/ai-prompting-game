@@ -38,7 +38,8 @@ export const ToggleButton = styled.button`
 export const CountersContainer = styled.div`
   position: absolute;
   top: 12px;
-  right: 12px;
+  left: 50%;
+  transform: translateX(-50%);
   display: flex;
   flex-direction: column;
   background-color: rgba(32, 33, 35, 0.9);
@@ -46,6 +47,7 @@ export const CountersContainer = styled.div`
   border: 1px solid #565869;
   z-index: 5;
   overflow: hidden;
+  pointer-events: none;
 `;
 
 export const CounterRow = styled.div`
@@ -71,6 +73,8 @@ export const CounterValue = styled.span`
   color: #19c37d;
   font-size: 14px;
   font-weight: 600;
+  text-align: center;
+  flex: 1;
 `;
 
 export const LifeIcon = styled.span<{ $isActive: boolean }>`

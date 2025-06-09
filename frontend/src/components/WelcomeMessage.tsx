@@ -30,7 +30,7 @@ export const WelcomeMessage: React.FC = () => {
       <WelcomeTitle>
         Find the Password
         <InfoButton onClick={() => setShowRules(true)} title="How to Play">
-          ℹ️
+        📝
         </InfoButton>
       </WelcomeTitle>
       <WelcomeSubtitle>
