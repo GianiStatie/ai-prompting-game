@@ -29,7 +29,7 @@ const getAIRank = (level: number): string => {
     case 18: return 'Sentinel AI';
     case 19: return 'Uncrackable AI';
     case 20: return 'Omniscient AI';
-    default: return 'Unknown';
+    default: return 'The Unknown';
   }
 };
 

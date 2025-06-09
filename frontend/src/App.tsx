@@ -243,6 +243,9 @@ function App() {
       // Add AI message to chat
       addMessageToChat(currentChatId, aiMessage);
 
+      // Track if this was a password attempt
+      let wasPasswordAttempt = false;
+
       // Get the response reader
       const reader = response.body?.getReader();
       if (!reader) {
@@ -269,7 +272,12 @@ function App() {
               const jsonStr = line.substring(6); // Remove "data: " prefix
               if (jsonStr.trim()) {
                 const response = JSON.parse(jsonStr);
-                const { message: word, is_done } = response;
+                const { message: word, is_done, is_password_attempt } = response;
+                
+                // Update wasPasswordAttempt if this was a password attempt
+                if (is_password_attempt) {
+                  wasPasswordAttempt = true;
+                }
                 
                 // Update the AI message with the new word
                 updateMessageInChat(currentChatId, aiMessage.id, aiMessage.text + word);
@@ -291,7 +299,7 @@ function App() {
                   setIsSessionComplete(true);
                   setHasSeenCongratulations(false); // Reset flag for new completion
                   setShowConfetti(true);
-                  setLives(DEFAULT_LIVES); // Refill lives when password is found
+                  // setLives(DEFAULT_LIVES); // Refill lives when password is found
                   setHasSeenGameOver(false); // Reset game over flag when lives are restored
                   // Update the chat to mark it as complete
                   markChatAsComplete(currentChatId);
@@ -305,7 +313,7 @@ function App() {
       }
       
       // Decrease lives only after submission completes and session is not done
-      if (!sessionCompleted) {
+      if (!sessionCompleted && wasPasswordAttempt) {
         setLives(prev => prev - 1);
       }
       
@@ -318,9 +326,7 @@ function App() {
         timestamp: new Date().toISOString()
       };
       addMessageToChat(currentChatId, errorMessage);
-      
-      // Decrease lives on error as well (failed submission)
-      setLives(prev => prev - 1);
+
     } finally {
       setIsStreaming(false);
     }

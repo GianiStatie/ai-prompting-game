@@ -32,6 +32,7 @@ class Message(BaseModel):
 class ChatResponse(BaseModel):
     message: str
     is_done: bool
+    is_password_attempt: bool
 
 class Rule(BaseModel):
     id: int
@@ -49,14 +50,14 @@ async def get_rules():
 
 @app.post("/api/chat", response_model=ChatResponse)
 async def chat(message: Message, chat_history: List[Message]):
-    response, is_done = agent.process_message(message.text, chat_history)
-    return ChatResponse(message=response, is_done=is_done)
+    response, is_done, is_password_attempt = agent.process_message(message.text, chat_history)
+    return ChatResponse(message=response, is_done=is_done, is_password_attempt=is_password_attempt)
 
 @app.post("/api/chat-stream")
 async def stream(message: Message, chat_history: List[Message]):
     def generate():
-        for chunk, is_done in agent.stream_message(message.text, chat_history):
-            yield f"data: {json.dumps({'message': chunk, 'is_done': is_done})}\n\n"
+        for chunk, is_done, is_password_attempt in agent.stream_message(message.text, chat_history):
+            yield f"data: {json.dumps({'message': chunk, 'is_done': is_done, 'is_password_attempt': is_password_attempt})}\n\n"
     
     return StreamingResponse(generate(), media_type="text/event-stream")
 
