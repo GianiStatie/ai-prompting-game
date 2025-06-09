@@ -35,22 +35,40 @@ export const ToggleButton = styled.button`
   }
 `;
 
-export const LifeCounter = styled.div`
+export const CountersContainer = styled.div`
   position: absolute;
   top: 12px;
   right: 12px;
   display: flex;
-  align-items: center;
-  gap: 8px;
+  flex-direction: column;
   background-color: rgba(32, 33, 35, 0.9);
-  padding: 8px 12px;
   border-radius: 8px;
   border: 1px solid #565869;
   z-index: 5;
+  overflow: hidden;
 `;
 
-export const LifeCounterText = styled.span`
+export const CounterRow = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border-bottom: 1px solid #565869;
+  
+  &:last-child {
+    border-bottom: none;
+  }
+`;
+
+export const CounterText = styled.span`
   color: #fff;
+  font-size: 14px;
+  font-weight: 600;
+  min-width: 80px;
+`;
+
+export const CounterValue = styled.span`
+  color: #19c37d;
   font-size: 14px;
   font-weight: 600;
 `;
@@ -60,4 +78,4 @@ export const LifeIcon = styled.span<{ $isActive: boolean }>`
   font-size: 16px;
   transition: opacity 0.2s ease;
   filter: ${props => props.$isActive ? 'none' : 'grayscale(100%)'};
-`; 
+`;

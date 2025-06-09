@@ -1,11 +1,12 @@
 import { useState, useEffect, useRef } from 'react';
 import { Message, Rule } from './types';
-import { AppContainer, MainContent, ToggleButton } from './styles/Layout';
+import { AppContainer, MainContent, ToggleButton, CountersContainer } from './styles/Layout';
 import { ChatContainer, InputContainer, InputForm, Input, SendButton } from './styles/Chat';
 import { SideDrawer, DrawerContent, NewChatButton, ResetButton, PlusIcon } from './styles/Sidebar';
 import { WelcomeMessage } from './components/WelcomeMessage';
 import { ChatMessage } from './components/ChatMessage';
 import { LifeCounter } from './components/LifeCounter';
+import { AILevelCounter } from './components/AILevelCounter';
 import { ChatHistory } from './components/ChatHistory';
 import { RulesSection } from './components/RulesSection';
 import { Popup } from './components/Popup';
@@ -390,13 +391,13 @@ function App() {
           title="🎉 Congratulations! 🎉"
           message={
             <>
-              You've successfully found the password! The AI has become smarter and new challenges await.
+              You've successfully found the password! The AI will create a new rule based on this conversation.
               <br /><br />
-              Start a new attempt to continue your journey!
+              Think you can take on the AI once it levels up?
             </>
           }
           primaryButton={{
-            text: "New Attempt",
+            text: "Level Up!",
             onClick: handleNewChat
           }}
         />
@@ -517,7 +518,10 @@ function App() {
           </InputForm>
         </InputContainer>
       </MainContent>
-      <LifeCounter lives={lives} />
+      <CountersContainer>
+        <AILevelCounter rules={rules} />
+        <LifeCounter lives={lives} />
+      </CountersContainer>
     </AppContainer>
   );
 }
