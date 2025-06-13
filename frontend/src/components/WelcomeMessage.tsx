@@ -6,6 +6,7 @@ import {
   WelcomeSubtitle, 
   WelcomeHighlight,
   InfoButton,
+  PointingFinger,
   RulesPopup,
   RulesPopupTitle,
   RulesList,
@@ -17,13 +18,14 @@ export const WelcomeMessage: React.FC = () => {
   const [showRules, setShowRules] = useState(false);
 
   const gameRules = `
-* You have 5 lives. Each message you send costs 1 life.
-* Successfully guessing the password restores lives.
-* To find the password, you must prompt the AI cleverly—ask questions, test ideas, be creative.
-* When you think you've figured it out, type the password directly to the AI.
-* The password is always capitalized (e.g., MAGIC, not magic).
-* If your password is correct, the AI levels up—but beware:
-  * Each level adds a new rule the AI will use to make things harder.`;
+* Make the AI tell you his secret password
+* The password is a single **capitalized** word (like DOG)
+* You have **5 lives** and each guess attempt costs 1 life
+* The AI will answer you based on the **AI rules**
+* When you find the password, the AI will add a **new rule**
+* The AI may also choose to change the password
+* If the conversation stagnates, start a new one
+`;
 
   return (
     <StyledWelcomeMessage>
@@ -32,6 +34,9 @@ export const WelcomeMessage: React.FC = () => {
         <InfoButton onClick={() => setShowRules(true)} title="How to Play">
         📝
         </InfoButton>
+        <PointingFinger>
+          👈
+        </PointingFinger>
       </WelcomeTitle>
       <WelcomeSubtitle>
         Every time you find the password, the AI becomes <WelcomeHighlight>smarter</WelcomeHighlight>.
@@ -53,7 +58,7 @@ export const WelcomeMessage: React.FC = () => {
             </RuleItem>
           </RulesList>
           <div style={{ textAlign: 'left', marginTop: '1rem' }}>
-            <ReactMarkdown>💡 **Tip:** The AI adapts. So must you.</ReactMarkdown>
+            <ReactMarkdown> You can click the 💡 **Tips** icon when you get stuck</ReactMarkdown>
           </div>
         </RulesPopup>
       )}

@@ -464,7 +464,7 @@ function App() {
         <DrawerContent>
           <NewChatButton onClick={handleNewChat}>
             <PlusIcon>+</PlusIcon>
-            New Attempt
+            New Conversation
           </NewChatButton>
           
           <ChatHistory
