@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { Message, Rule } from './types';
-import { AppContainer, MainContent, ToggleButton, CountersContainer } from './styles/Layout';
+import { AppContainer, MainContent, ToggleButton, TipsButton, CountersContainer } from './styles/Layout';
 import { ChatContainer, InputContainer, InputForm, Input, SendButton } from './styles/Chat';
 import { SideDrawer, DrawerContent, NewChatButton, ResetButton, PlusIcon } from './styles/Sidebar';
 import { WelcomeMessage } from './components/WelcomeMessage';
@@ -10,6 +10,7 @@ import { AILevelCounter } from './components/AILevelCounter';
 import { ChatHistory } from './components/ChatHistory';
 import { RulesSection } from './components/RulesSection';
 import { Popup } from './components/Popup';
+import { TipsPopup } from './components/TipsPopup';
 import { useChats } from './hooks/useChats';
 import { 
   loadRulesFromStorage, 
@@ -50,6 +51,7 @@ function App() {
   const [showGameOverPopup, setShowGameOverPopup] = useState(false);
   const [hasSeenGameOver, setHasSeenGameOver] = useState(false);
   const [showConfetti, setShowConfetti] = useState(false);
+  const [showTips, setShowTips] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -395,6 +397,7 @@ function App() {
   return (
     <AppContainer>
       {showConfetti && <Confetti active={true} duration={5000} />}
+      <TipsPopup isVisible={showTips} onClose={() => setShowTips(false)} />
       {isSessionComplete && !hasSeenCongratulations && (
         <Popup
           title="🎉 Congratulations! 🎉"
@@ -499,6 +502,9 @@ function App() {
         <ToggleButton onClick={toggleDrawer}>
           {isDrawerOpen ? '←' : '→'}
         </ToggleButton>
+        <TipsButton onClick={() => setShowTips(true)} title="Tips & Strategies">
+          💡
+        </TipsButton>
         <CountersContainer>
           <LifeCounter lives={lives} />
           <AILevelCounter rules={rules} />
