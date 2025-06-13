@@ -25,7 +25,7 @@ class Agent:
         is_password_attempt = first_capitalized_word != None
 
         # Check for password anywhere in message
-        if first_capitalized_word == self.password:
+        if len(first_capitalized_word) > 2 and first_capitalized_word == self.password:
             self.model.update_rules(chat_history, self.password)
             self.password = self.generate_password()
             return self.model.build_congratulations(), True, is_password_attempt
