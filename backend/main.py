@@ -1,3 +1,4 @@
+import os
 import json
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -18,7 +19,7 @@ agent = Agent()
 # Enable CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173"],  # React dev server
+    allow_origins=[os.getenv("FRONTEND_URL", "http://localhost:5173")],  # React dev server
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
