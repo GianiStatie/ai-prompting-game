@@ -16,13 +16,13 @@ class AbstractModel:
         self.thinking = thinking
         self.thinking_message = "<think>I can't believe he said that...</think>" 
     
-    def build_message(self, message: str, password: str, chat_history: List[str] = []) -> str:
-        return "".join(self.stream_message(message, password, chat_history))
+    def build_message(self, message: str, password: str, chat_history: List[str] = [], rules: List[str] = []) -> str:
+        return "".join(self.stream_message(message, password, chat_history, rules))
     
     def build_congratulations(self) -> str:
         return "".join(self.stream_congratulations())
     
-    def stream_message(self, message: str, password: str, chat_history: List[str] = []) -> Generator[str]:
+    def stream_message(self, message: str, password: str, chat_history: List[str] = [], rules: List[str] = []) -> Generator[str]:
         try:
             prompt = ChatPromptTemplate.from_messages([
                     ("system", PROMPTS["password_protection"]),
@@ -35,7 +35,7 @@ class AbstractModel:
                 "input": message, 
                 "password": password, 
                 "chat_history": self._format_chat_history(chat_history),
-                "rules": "\n".join(self.llm_rules)
+                "rules": "\n".join(self.llm_rules + rules)
                 }):
                     yield chunk.content
 
@@ -50,20 +50,22 @@ class AbstractModel:
         for word in text.split(" "):
             yield word + " "
 
-    def update_rules(self, chat_history: List[str], password: str):
+    def get_new_rule(self, chat_history: List[str], rules: List[str], password: str):
         prompt = ChatPromptTemplate.from_messages([
             ("system", PROMPTS["new_rule"])
         ])
 
         chain = prompt | self.llm
-        response = chain.invoke({"chat_history": self._format_chat_history(chat_history), "password": password, "rules": "\n".join(self.llm_rules)})
+        response = chain.invoke({
+            "chat_history": self._format_chat_history(chat_history), 
+            "password": password, "rules": "\n".join(self.llm_rules + rules)
+        })
 
         response_text = response.content
         if self.thinking:
             response_text = response_text.split("</think>")[-1].strip()
 
-        self.llm_rules.append(response_text)
-    
+        return response_text
     
     def _format_chat_history(self, chat_history: List[str]) -> str:
         return [

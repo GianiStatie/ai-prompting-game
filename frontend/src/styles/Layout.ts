@@ -35,6 +35,30 @@ export const ToggleButton = styled.button`
   }
 `;
 
+export const TipsButton = styled.button`
+  position: absolute;
+  right: 12px;
+  top: 12px;
+  padding: 8px;
+  border-radius: 6px;
+  border: 1px solid #565869;
+  background-color: transparent;
+  color: #fff;
+  cursor: pointer;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  font-size: 16px;
+
+  &:hover {
+    background-color: #2b2c2f;
+    color: #19c37d;
+    border-color: #19c37d;
+  }
+`;
+
 export const CountersContainer = styled.div`
   position: absolute;
   top: 12px;

@@ -159,6 +159,62 @@ export const InfoButton = styled.button`
   }
 `;
 
+export const PointingFinger = styled.div`
+  position: absolute;
+  right: -80px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 24px;
+  pointer-events: none;
+  z-index: 10;
+  animation: pointingBounceAndFade 5s ease-in-out forwards;
+  animation-delay: 1s;
+
+  @keyframes pointingBounceAndFade {
+    0% {
+      transform: translateY(-50%) translateX(0px);
+      opacity: 0.7;
+    }
+    10% { /* ~0.5s */
+      transform: translateY(-50%) translateX(-5px);
+      opacity: 1;
+    }
+    20% { /* ~1s */
+      transform: translateY(-50%) translateX(0px);
+      opacity: 0.7;
+    }
+    30% { /* ~1.5s */
+      transform: translateY(-50%) translateX(-5px);
+      opacity: 1;
+    }
+    40% { /* ~2s */
+      transform: translateY(-50%) translateX(0px);
+      opacity: 0.7;
+    }
+    50% { /* ~2.5s */
+      transform: translateY(-50%) translateX(-5px);
+      opacity: 1;
+    }
+    60% { /* ~3s */
+      transform: translateY(-50%) translateX(0px);
+      opacity: 0.7;
+    }
+    70% { /* ~3.5s - end of bouncing */
+      transform: translateY(-50%) translateX(0px);
+      opacity: 0.7;
+    }
+    85% { /* ~4.25s - start fade out */
+      transform: translateY(-50%) translateX(0px);
+      opacity: 0.3;
+    }
+    100% { /* ~5s - completely hidden */
+      transform: translateY(-50%) translateX(0px);
+      opacity: 0;
+      visibility: hidden;
+    }
+  }
+`;
+
 export const RulesPopup = styled.div`
   position: absolute;
   top: 50%;

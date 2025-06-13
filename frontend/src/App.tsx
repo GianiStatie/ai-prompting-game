@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { Message, Rule } from './types';
-import { AppContainer, MainContent, ToggleButton, CountersContainer } from './styles/Layout';
+import { AppContainer, MainContent, ToggleButton, TipsButton, CountersContainer } from './styles/Layout';
 import { ChatContainer, InputContainer, InputForm, Input, SendButton } from './styles/Chat';
 import { SideDrawer, DrawerContent, NewChatButton, ResetButton, PlusIcon } from './styles/Sidebar';
 import { WelcomeMessage } from './components/WelcomeMessage';
@@ -10,6 +10,7 @@ import { AILevelCounter } from './components/AILevelCounter';
 import { ChatHistory } from './components/ChatHistory';
 import { RulesSection } from './components/RulesSection';
 import { Popup } from './components/Popup';
+import { TipsPopup } from './components/TipsPopup';
 import { useChats } from './hooks/useChats';
 import { 
   loadRulesFromStorage, 
@@ -35,7 +36,6 @@ function App() {
     deleteChat,
     renameChat,
     clearAllChats,
-    setActiveChatId
   } = useChats();
   const [inputValue, setInputValue] = useState('');
   const [isDrawerOpen, setIsDrawerOpen] = useState(true);
@@ -51,6 +51,7 @@ function App() {
   const [showGameOverPopup, setShowGameOverPopup] = useState(false);
   const [hasSeenGameOver, setHasSeenGameOver] = useState(false);
   const [showConfetti, setShowConfetti] = useState(false);
+  const [showTips, setShowTips] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -119,22 +120,6 @@ function App() {
     handleResetAll();
   };
 
-  // Initialize with first chat and validate active chat ID
-  useEffect(() => {
-    if (chats.length === 0) {
-      createNewChat(true);
-    } else {
-      // Validate that the active chat ID exists in the loaded chats
-      if (activeChatId && !chats.find(chat => chat.id === activeChatId)) {
-        // If active chat ID doesn't exist, set to the first chat
-        setActiveChatId(chats[0].id);
-      } else if (!activeChatId) {
-        // If no active chat ID, set to the first chat
-        setActiveChatId(chats[0].id);
-      }
-    }
-  }, [chats, activeChatId, createNewChat, setActiveChatId]);
-
   // Load isSessionComplete state when active chat changes
   useEffect(() => {
     if (activeChatId) {
@@ -158,16 +143,6 @@ function App() {
       }
     }
   };
-
-  useEffect(() => {
-    // Only fetch rules from API if we don't have any in localStorage
-    if (rules.length === 0) {
-      // Clear the chat history and create a new chat
-      clearAllChats();
-      createNewChat(true);
-      handleFetchRules();
-    }
-  }, [rules.length, clearAllChats, createNewChat]);
 
   // Auto-scroll to bottom when messages change
   useEffect(() => {
@@ -225,7 +200,8 @@ function App() {
         },
         body: JSON.stringify({
           message: userMessage,
-          chat_history: currentMessages
+          chat_history: currentMessages,
+          rules_list: rules
         }),
       });
 
@@ -244,8 +220,9 @@ function App() {
       // Add AI message to chat
       addMessageToChat(currentChatId, aiMessage);
 
-      // Track if this was a password attempt
+      // Track if this was a password attempt and if session is done
       let wasPasswordAttempt = false;
+      let isSessionDone = false;
 
       // Get the response reader
       const reader = response.body?.getReader();
@@ -280,30 +257,22 @@ function App() {
                   wasPasswordAttempt = true;
                 }
                 
+                // Track if session is done
+                if (is_done) {
+                  isSessionDone = true;
+                }
+                
                 // Update the AI message with the new word
                 updateMessageInChat(currentChatId, aiMessage.id, aiMessage.text + word);
                 aiMessage.text += word;
 
                 // Calculate elapsed time for processing this chunk
                 const chunkElapsedTime = performance.now() - chunkStartTime;
-                console.log('Chunk elapsed time:', chunkElapsedTime);
                 
                 // Ensure minimum delay between chunks for smooth streaming
                 if (chunkElapsedTime < GAME_CONFIG.STREAMING_DELAY_MS) {
                   const remainingDelay = Math.max(0, GAME_CONFIG.STREAMING_DELAY_MS - chunkElapsedTime);
                   await new Promise(resolve => setTimeout(resolve, remainingDelay));
-                }
-                
-                // If session is done, break the outer loop
-                if (is_done) {
-                  sessionCompleted = true;
-                  setIsSessionComplete(true);
-                  setHasSeenCongratulations(false); // Reset flag for new completion
-                  setShowConfetti(true);
-                  // setLives(DEFAULT_LIVES); // Refill lives when password is found
-                  setHasSeenGameOver(false); // Reset game over flag when lives are restored
-                  // Update the chat to mark it as complete
-                  markChatAsComplete(currentChatId);
                 }
               }
             } catch (parseError) {
@@ -311,6 +280,33 @@ function App() {
             }
           }
         }
+      }
+
+      // Handle session completion after streaming is done
+      if (isSessionDone) {
+        sessionCompleted = true;
+        setIsSessionComplete(true);
+        setHasSeenCongratulations(false); // Reset flag for new completion
+        setShowConfetti(true);
+        // setLives(DEFAULT_LIVES); // Refill lives when password is found
+        setHasSeenGameOver(false); // Reset game over flag when lives are restored
+        // Update the chat to mark it as complete
+        markChatAsComplete(currentChatId);
+        // Fetch new rule
+        // Send message to backend
+        const newRuleResponse = await fetch(`${import.meta.env.VITE_API_URL}/api/new-rule`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            chat_history: currentMessages,
+            rules_list: rules
+          }),
+        });
+        const newRuleData = await newRuleResponse.json();
+        // Persist the new rule to localStorage
+        saveRulesToStorage([newRuleData, ...rules]);
       }
       
       // Decrease lives only after submission completes and session is not done
@@ -401,6 +397,7 @@ function App() {
   return (
     <AppContainer>
       {showConfetti && <Confetti active={true} duration={5000} />}
+      <TipsPopup isVisible={showTips} onClose={() => setShowTips(false)} />
       {isSessionComplete && !hasSeenCongratulations && (
         <Popup
           title="🎉 Congratulations! 🎉"
@@ -470,7 +467,7 @@ function App() {
         <DrawerContent>
           <NewChatButton onClick={handleNewChat}>
             <PlusIcon>+</PlusIcon>
-            New Attempt
+            New Conversation
           </NewChatButton>
           
           <ChatHistory
@@ -505,6 +502,9 @@ function App() {
         <ToggleButton onClick={toggleDrawer}>
           {isDrawerOpen ? '←' : '→'}
         </ToggleButton>
+        <TipsButton onClick={() => setShowTips(true)} title="Tips & Strategies">
+          💡
+        </TipsButton>
         <CountersContainer>
           <LifeCounter lives={lives} />
           <AILevelCounter rules={rules} />
