@@ -2,7 +2,6 @@ import os
 import json
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
 from typing import List
 
 import dotenv
@@ -10,6 +9,7 @@ import uvicorn
 from fastapi.responses import StreamingResponse
 
 from src.agent import Agent
+from src.schemas import Message, ChatResponse, Rule
 
 # Setup environment
 dotenv.load_dotenv()
@@ -25,21 +25,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-class Message(BaseModel):
-    id: int
-    text: str
-    isUser: bool
-
-class ChatResponse(BaseModel):
-    message: str
-    is_done: bool
-    is_password_attempt: bool
-
-class Rule(BaseModel):
-    id: int
-    title: str
-    description: str
-
 @app.get("/")
 async def read_root():
     return {"message": "Welcome to the AI Chat API"}
@@ -49,15 +34,23 @@ async def get_rules():
     llm_rules = agent.get_llm_rules()
     return [Rule(id=i, title=rule, description=rule) for i, rule in enumerate(llm_rules)]
 
+@app.post("/api/new-rule", response_model=Rule)
+async def get_new_rule(chat_history: List[Message], rules_list: List[Rule]):
+    rules = [rule.title for rule in rules_list]
+    new_rule = agent.get_new_rule(chat_history, rules)
+    return Rule(id=0, title=new_rule, description=new_rule)
+
 @app.post("/api/chat", response_model=ChatResponse)
-async def chat(message: Message, chat_history: List[Message]):
-    response, is_done, is_password_attempt = agent.process_message(message.text, chat_history)
+async def chat(message: Message, chat_history: List[Message], rules_list: List[Rule]):
+    rules = [rule.title for rule in rules_list]
+    response, is_done, is_password_attempt = agent.process_message(message.text, chat_history, rules)
     return ChatResponse(message=response, is_done=is_done, is_password_attempt=is_password_attempt)
 
 @app.post("/api/chat-stream")
-async def stream(message: Message, chat_history: List[Message]):
+async def stream(message: Message, chat_history: List[Message], rules_list: List[Rule]):
+    rules = [rule.title for rule in rules_list]
     def generate():
-        for chunk, is_done, is_password_attempt in agent.stream_message(message.text, chat_history):
+        for chunk, is_done, is_password_attempt in agent.stream_message(message.text, chat_history, rules):
             yield f"data: {json.dumps({'message': chunk, 'is_done': is_done, 'is_password_attempt': is_password_attempt})}\n\n"
     
     return StreamingResponse(generate(), media_type="text/event-stream")

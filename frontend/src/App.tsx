@@ -198,7 +198,8 @@ function App() {
         },
         body: JSON.stringify({
           message: userMessage,
-          chat_history: currentMessages
+          chat_history: currentMessages,
+          rules_list: rules
         }),
       });
 
@@ -217,8 +218,9 @@ function App() {
       // Add AI message to chat
       addMessageToChat(currentChatId, aiMessage);
 
-      // Track if this was a password attempt
+      // Track if this was a password attempt and if session is done
       let wasPasswordAttempt = false;
+      let isSessionDone = false;
 
       // Get the response reader
       const reader = response.body?.getReader();
@@ -253,6 +255,11 @@ function App() {
                   wasPasswordAttempt = true;
                 }
                 
+                // Track if session is done
+                if (is_done) {
+                  isSessionDone = true;
+                }
+                
                 // Update the AI message with the new word
                 updateMessageInChat(currentChatId, aiMessage.id, aiMessage.text + word);
                 aiMessage.text += word;
@@ -265,24 +272,39 @@ function App() {
                   const remainingDelay = Math.max(0, GAME_CONFIG.STREAMING_DELAY_MS - chunkElapsedTime);
                   await new Promise(resolve => setTimeout(resolve, remainingDelay));
                 }
-                
-                // If session is done, break the outer loop
-                if (is_done) {
-                  sessionCompleted = true;
-                  setIsSessionComplete(true);
-                  setHasSeenCongratulations(false); // Reset flag for new completion
-                  setShowConfetti(true);
-                  // setLives(DEFAULT_LIVES); // Refill lives when password is found
-                  setHasSeenGameOver(false); // Reset game over flag when lives are restored
-                  // Update the chat to mark it as complete
-                  markChatAsComplete(currentChatId);
-                }
               }
             } catch (parseError) {
               console.error('Error parsing SSE JSON:', parseError, 'Line:', line);
             }
           }
         }
+      }
+
+      // Handle session completion after streaming is done
+      if (isSessionDone) {
+        sessionCompleted = true;
+        setIsSessionComplete(true);
+        setHasSeenCongratulations(false); // Reset flag for new completion
+        setShowConfetti(true);
+        // setLives(DEFAULT_LIVES); // Refill lives when password is found
+        setHasSeenGameOver(false); // Reset game over flag when lives are restored
+        // Update the chat to mark it as complete
+        markChatAsComplete(currentChatId);
+        // Fetch new rule
+        // Send message to backend
+        const newRuleResponse = await fetch(`${import.meta.env.VITE_API_URL}/api/new-rule`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            chat_history: currentMessages,
+            rules_list: rules
+          }),
+        });
+        const newRuleData = await newRuleResponse.json();
+        // Persist the new rule to localStorage
+        saveRulesToStorage([newRuleData, ...rules]);
       }
       
       // Decrease lives only after submission completes and session is not done
