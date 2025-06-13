@@ -56,7 +56,13 @@ export const ChatHistory: React.FC<ChatHistoryProps> = ({
                 value={editingTitle}
                 onChange={(e) => onEditingTitleChange(e.target.value)}
                 onKeyDown={(e) => onRenameKeyDown(e, chat.id)}
-                onBlur={() => onSaveRename(chat.id)}
+                onBlur={() => {
+                  if (editingTitle.trim()) {
+                    onSaveRename(chat.id);
+                  } else {
+                    onCancelRename();
+                  }
+                }}
                 autoFocus
                 onClick={(e) => e.stopPropagation()}
               />
