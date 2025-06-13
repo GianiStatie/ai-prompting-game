@@ -124,6 +124,7 @@ export const useChats = () => {
   const deleteChat = (chatId: string) => {
     setChats(prev => {
       const updatedChats = prev.filter(chat => chat.id !== chatId);
+      const skipCheck = updatedChats.length === 0;
       
       // If we deleted the active chat, select another one or create new
       if (chatId === activeChatId) {
@@ -131,7 +132,7 @@ export const useChats = () => {
           setActiveChatId(updatedChats[0].id);
         } else {
           // Create a new chat if no chats remain
-          setTimeout(() => createNewChat(), 0);
+          setTimeout(() => createNewChat(skipCheck), 0);
         }
       }
       

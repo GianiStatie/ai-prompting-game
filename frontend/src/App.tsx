@@ -35,7 +35,6 @@ function App() {
     deleteChat,
     renameChat,
     clearAllChats,
-    setActiveChatId
   } = useChats();
   const [inputValue, setInputValue] = useState('');
   const [isDrawerOpen, setIsDrawerOpen] = useState(true);
@@ -119,22 +118,6 @@ function App() {
     handleResetAll();
   };
 
-  // Initialize with first chat and validate active chat ID
-  useEffect(() => {
-    if (chats.length === 0) {
-      createNewChat(true);
-    } else {
-      // Validate that the active chat ID exists in the loaded chats
-      if (activeChatId && !chats.find(chat => chat.id === activeChatId)) {
-        // If active chat ID doesn't exist, set to the first chat
-        setActiveChatId(chats[0].id);
-      } else if (!activeChatId) {
-        // If no active chat ID, set to the first chat
-        setActiveChatId(chats[0].id);
-      }
-    }
-  }, [chats, activeChatId, createNewChat, setActiveChatId]);
-
   // Load isSessionComplete state when active chat changes
   useEffect(() => {
     if (activeChatId) {
@@ -158,16 +141,6 @@ function App() {
       }
     }
   };
-
-  useEffect(() => {
-    // Only fetch rules from API if we don't have any in localStorage
-    if (rules.length === 0) {
-      // Clear the chat history and create a new chat
-      clearAllChats();
-      createNewChat(true);
-      handleFetchRules();
-    }
-  }, [rules.length, clearAllChats, createNewChat]);
 
   // Auto-scroll to bottom when messages change
   useEffect(() => {
@@ -286,7 +259,6 @@ function App() {
 
                 // Calculate elapsed time for processing this chunk
                 const chunkElapsedTime = performance.now() - chunkStartTime;
-                console.log('Chunk elapsed time:', chunkElapsedTime);
                 
                 // Ensure minimum delay between chunks for smooth streaming
                 if (chunkElapsedTime < GAME_CONFIG.STREAMING_DELAY_MS) {

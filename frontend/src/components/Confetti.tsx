@@ -12,14 +12,14 @@ const fallAnimation = keyframes`
   }
 `;
 
-const ConfettiPiece = styled.div<{ delay: number; duration: number; left: number; color: string }>`
+const ConfettiPiece = styled.div<{ $delay: number; $duration: number; $left: number; $color: string }>`
   position: fixed;
   top: -10px;
-  left: ${props => props.left}%;
+  left: ${props => props.$left}%;
   width: 10px;
   height: 10px;
-  background-color: ${props => props.color};
-  animation: ${fallAnimation} ${props => props.duration}s linear ${props => props.delay}s infinite;
+  background-color: ${props => props.$color};
+  animation: ${fallAnimation} ${props => props.$duration}s linear ${props => props.$delay}s infinite;
   z-index: 9999;
   border-radius: 2px;
 `;
@@ -79,10 +79,10 @@ export const Confetti: React.FC<ConfettiProps> = ({ active, duration = 4000 }) =
       {pieces.map(piece => (
         <ConfettiPiece
           key={piece.id}
-          delay={piece.delay}
-          duration={piece.duration}
-          left={piece.left}
-          color={piece.color}
+          $delay={piece.delay}
+          $duration={piece.duration}
+          $left={piece.left}
+          $color={piece.color}
         />
       ))}
     </ConfettiContainer>
