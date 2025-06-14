@@ -61,7 +61,7 @@ export const ToggleButton = styled.button<{ $isDrawerOpen?: boolean }>`
   }
 
   @media (max-width: 480px) {
-    left: ${props => props.$isDrawerOpen ? '85vw' : '8px'}; /* Stick directly to drawer edge */
+    left: ${props => props.$isDrawerOpen ? '72vw' : '8px'}; /* Stick directly to drawer edge */
   }
 `;
 
@@ -125,8 +125,6 @@ export const CountersContainer = styled.div`
     
     /* Move below buttons on very small screens */
     @media (max-width: 480px) {
-      top: 60px;
-      flex-direction: row;
       width: auto;
       max-width: calc(100vw - 16px);
     }
