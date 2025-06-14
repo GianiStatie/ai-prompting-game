@@ -10,8 +10,48 @@ body {
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  
+  /* Mobile improvements */
+  -webkit-touch-callout: none; /* Disable callout on long tap */
+  -webkit-tap-highlight-color: transparent; /* Remove tap highlight */
+  touch-action: manipulation; /* Improve touch responsiveness */
+  
+  /* Prevent horizontal scrolling on mobile */
+  overflow-x: hidden;
+  
+  /* Support safe area insets for devices with notches */
+  padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
 }
 
 #root {
   height: 100vh;
+  /* Use dynamic viewport height on mobile to account for address bar */
+  height: 100dvh;
+  
+  /* Fallback for browsers that don't support dvh */
+  @supports not (height: 100dvh) {
+    height: 100vh;
+  }
+}
+
+/* Improve focus indicators for accessibility */
+*:focus-visible {
+  outline: 2px solid #19c37d;
+  outline-offset: 2px;
+}
+
+/* Smooth scrolling for better UX */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Prevent zoom on input focus on iOS */
+@media screen and (max-width: 768px) {
+  input[type="text"],
+  input[type="email"],
+  input[type="password"],
+  textarea,
+  select {
+    font-size: 16px !important;
+  }
 } 

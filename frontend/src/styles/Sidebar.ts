@@ -1,5 +1,8 @@
 import styled from 'styled-components';
 
+// Media query breakpoints
+const MOBILE_BREAKPOINT = '768px';
+
 export const SideDrawer = styled.div<{ $isOpen: boolean }>`
   width: ${props => props.$isOpen ? '260px' : '0'};
   background-color: #202123;
@@ -7,6 +10,36 @@ export const SideDrawer = styled.div<{ $isOpen: boolean }>`
   overflow: hidden;
   display: flex;
   flex-direction: column;
+
+  @media (max-width: ${MOBILE_BREAKPOINT}) {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100vh;
+    width: ${props => props.$isOpen ? '240px' : '0'};
+    z-index: 1002;
+    box-shadow: ${props => props.$isOpen ? '2px 0 10px rgba(0, 0, 0, 0.3)' : 'none'};
+    
+    /* Backdrop overlay */
+    &::before {
+      content: '';
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: rgba(0, 0, 0, 0.5);
+      opacity: ${props => props.$isOpen ? '1' : '0'};
+      visibility: ${props => props.$isOpen ? 'visible' : 'hidden'};
+      transition: opacity 0.3s ease, visibility 0.3s ease;
+      z-index: -1;
+    }
+  }
+
+  @media (max-width: 480px) {
+    width: ${props => props.$isOpen ? '85vw' : '0'};
+    max-width: 280px;
+  }
 `;
 
 export const DrawerContent = styled.div`
@@ -15,6 +48,14 @@ export const DrawerContent = styled.div`
   flex-direction: column;
   gap: 8px;
   height: 100%;
+
+  @media (max-width: ${MOBILE_BREAKPOINT}) {
+    padding: 16px;
+    gap: 12px;
+    /* Account for safe area on mobile devices */
+    padding-top: max(16px, env(safe-area-inset-top) + 16px);
+    padding-bottom: max(16px, env(safe-area-inset-bottom) + 16px);
+  }
 `;
 
 export const NewChatButton = styled.button`
@@ -30,9 +71,16 @@ export const NewChatButton = styled.button`
   gap: 12px;
   transition: background-color 0.2s;
   white-space: nowrap;
+  min-height: 44px; /* Minimum touch target size */
 
   &:hover {
     background-color: #2b2c2f;
+  }
+
+  @media (max-width: ${MOBILE_BREAKPOINT}) {
+    padding: 14px 16px;
+    font-size: 15px;
+    min-height: 48px;
   }
 `;
 
@@ -50,9 +98,16 @@ export const ResetButton = styled.button`
   gap: 12px;
   transition: background-color 0.2s;
   white-space: nowrap;
+  min-height: 44px; /* Minimum touch target size */
 
   &:hover {
     background-color: #2b2c2f;
+  }
+
+  @media (max-width: ${MOBILE_BREAKPOINT}) {
+    padding: 14px 16px;
+    font-size: 15px;
+    min-height: 48px;
   }
 `;
 
@@ -65,6 +120,10 @@ export const ChatHistorySection = styled.div`
   margin-bottom: 0px;
   border-bottom: 1px solid #565869;
   padding-bottom: 12px;
+
+  @media (max-width: ${MOBILE_BREAKPOINT}) {
+    padding-bottom: 16px;
+  }
 `;
 
 export const ChatHistoryHeader = styled.div`
@@ -74,12 +133,21 @@ export const ChatHistoryHeader = styled.div`
   gap: 8px;
   padding: 8px;
   margin-bottom: 8px;
+
+  @media (max-width: ${MOBILE_BREAKPOINT}) {
+    padding: 10px 8px;
+    margin-bottom: 12px;
+  }
 `;
 
 export const ChatHistoryTitle = styled.span`
   font-size: 14px;
   color: #fff;
   font-weight: 600;
+
+  @media (max-width: ${MOBILE_BREAKPOINT}) {
+    font-size: 15px;
+  }
 `;
 
 export const ChatList = styled.div`
@@ -107,6 +175,11 @@ export const ChatList = styled.div`
   &::-webkit-scrollbar-thumb:hover {
     background-color: #6b6c7b;
   }
+
+  @media (max-width: ${MOBILE_BREAKPOINT}) {
+    max-height: 250px;
+    gap: 6px;
+  }
 `;
 
 export const ChatItem = styled.div<{ $isActive: boolean }>`
@@ -121,9 +194,17 @@ export const ChatItem = styled.div<{ $isActive: boolean }>`
   align-items: center;
   justify-content: space-between;
   group: relative;
+  min-height: 40px; /* Minimum touch target size */
 
   &:hover {
     background-color: ${props => props.$isActive ? '#19c37d' : '#2b2c2f'};
+  }
+
+  @media (max-width: ${MOBILE_BREAKPOINT}) {
+    padding: 12px 14px;
+    font-size: 14px;
+    min-height: 48px;
+    border-radius: 6px;
   }
 `;
 
@@ -134,6 +215,10 @@ export const ChatTitle = styled.span`
   white-space: nowrap;
   padding: 2px 4px;
   border-radius: 4px;
+
+  @media (max-width: ${MOBILE_BREAKPOINT}) {
+    padding: 4px 6px;
+  }
 `;
 
 export const ChatTitleInput = styled.input`
@@ -149,6 +234,11 @@ export const ChatTitleInput = styled.input`
 
   &:focus {
     border-color: #19c37d;
+  }
+
+  @media (max-width: ${MOBILE_BREAKPOINT}) {
+    padding: 6px 8px;
+    font-size: 14px;
   }
 `;
 
@@ -171,6 +261,14 @@ export const ActionButton = styled.button`
   ${ChatItem}:hover & {
     opacity: 1;
   }
+
+  @media (max-width: ${MOBILE_BREAKPOINT}) {
+    opacity: 1; /* Always show on mobile for better usability */
+    width: 32px;
+    height: 32px;
+    font-size: 14px;
+    padding: 4px;
+  }
 `;
 
 export const EditButton = styled(ActionButton)`
@@ -180,6 +278,12 @@ export const EditButton = styled(ActionButton)`
     color: #19c37d;
     background-color: rgba(255, 107, 107, 0.1);
     transform: scale(1.25);
+  }
+
+  @media (max-width: ${MOBILE_BREAKPOINT}) {
+    &:hover {
+      transform: scale(1.1);
+    }
   }
 `;
 
@@ -192,11 +296,23 @@ export const DeleteButton = styled(ActionButton)`
     background-color: rgba(255, 107, 107, 0.1);
     transform: scale(1.25);
   }
+
+  @media (max-width: ${MOBILE_BREAKPOINT}) {
+    margin-left: 6px;
+    
+    &:hover {
+      transform: scale(1.1);
+    }
+  }
 `;
 
 export const RulesSection = styled.div`
   margin-top: 0px;
   padding-top: 0px;
+
+  @media (max-width: ${MOBILE_BREAKPOINT}) {
+    padding-top: 8px;
+  }
 `;
 
 export const RulesHeader = styled.div`
@@ -207,9 +323,15 @@ export const RulesHeader = styled.div`
   cursor: pointer;
   border-radius: 6px;
   transition: background-color 0.2s;
+  min-height: 40px; /* Minimum touch target size */
 
   &:hover {
     background-color: #2b2c2f;
+  }
+
+  @media (max-width: ${MOBILE_BREAKPOINT}) {
+    padding: 12px 10px;
+    min-height: 48px;
   }
 `;
 
@@ -219,6 +341,10 @@ export const RulesTitle = styled.span`
   display: flex;
   align-items: center;
   gap: 8px;
+
+  @media (max-width: ${MOBILE_BREAKPOINT}) {
+    font-size: 15px;
+  }
 `;
 
 export const RulesCount = styled.span`
@@ -229,6 +355,12 @@ export const RulesCount = styled.span`
   border-radius: 10px;
   min-width: 20px;
   text-align: center;
+
+  @media (max-width: ${MOBILE_BREAKPOINT}) {
+    font-size: 13px;
+    padding: 3px 8px;
+    min-width: 24px;
+  }
 `;
 
 export const RulesList = styled.div<{ $isOpen: boolean }>`
@@ -255,6 +387,11 @@ export const RulesList = styled.div<{ $isOpen: boolean }>`
   &::-webkit-scrollbar-thumb:hover {
     background-color: #6b6c7b;
   }
+
+  @media (max-width: ${MOBILE_BREAKPOINT}) {
+    max-height: ${props => props.$isOpen ? '250px' : '0'};
+    margin-top: 12px;
+  }
 `;
 
 export const RuleItem = styled.div`
@@ -262,8 +399,21 @@ export const RuleItem = styled.div`
   font-size: 13px;
   color: #c5c5d2;
   border-radius: 4px;
-  margin-bottom: 4px;
-  background-color: #2b2c2f;
+  background-color: rgba(32, 33, 35, 0.5);
+  border: 1px solid #565869;
+  margin-bottom: 8px;
+  line-height: 1.4;
+
+  &:last-child {
+    margin-bottom: 0;
+  }
+
+  @media (max-width: ${MOBILE_BREAKPOINT}) {
+    padding: 10px 14px;
+    font-size: 14px;
+    margin-bottom: 10px;
+    border-radius: 6px;
+  }
 `;
 
 export const ChevronIcon = styled.span<{ $isOpen: boolean }>`
