@@ -89,6 +89,14 @@ function App() {
 
   const { isDrawerOpen, isRulesOpen, toggleDrawer, toggleRules } = useUIState();
 
+  // Initialize app with a new chat if no chats exist
+  useEffect(() => {
+    if (chats.length === 0 && !activeChatId) {
+      createNewChat(true);
+      handleFetchRules();
+    }
+  }, []); // Empty dependency array means this runs once on mount
+
   // Load isSessionComplete state when active chat changes
   useEffect(() => {
     if (activeChatId) {
