@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { Message } from './types';
 import { AppContainer, MainContent, ToggleButton, TipsButton, CountersContainer } from './styles/Layout';
-import { InputContainer, InputForm, Input, SendButton } from './styles/Chat';
+import { InputContainer, InputForm, SendButton } from './styles/Chat';
+import { HighlightedInput } from './components/HighlightedInput';
 import { SideDrawer, DrawerContent, NewChatButton, ResetButton, PlusIcon } from './styles/Sidebar';
 import { ChatContainer } from './components/ChatContainer';
 import { LifeCounter } from './components/LifeCounter';
@@ -318,11 +319,11 @@ function App() {
         
         <InputContainer>
           <InputForm onSubmit={handleSubmit}>
-            <Input
-              ref={textareaRef}
+            <HighlightedInput
+              textareaRef={textareaRef}
               value={inputValue}
               onChange={(e) => setInputValue(e.target.value)}
-              onKeyDown={(e) => handleKeyDown(e, () => handleSubmit(e as any))}
+              onKeyDown={(e) => handleKeyDown(e, () => handleSubmit(e as React.FormEvent))}
               placeholder={getPlaceholder()}
               disabled={isDisabled}
             />
