@@ -1,16 +1,16 @@
 import { useState, useEffect } from 'react';
 
-export const usePopups = (lives: number) => {
+export const usePopups = (lives: number, hasSeenGameOver: boolean) => {
   const [showResetConfirm, setShowResetConfirm] = useState(false);
   const [showGameOverPopup, setShowGameOverPopup] = useState(false);
   const [showTips, setShowTips] = useState(false);
 
-  // Show game over popup when lives reach 0
+  // Show game over popup when lives reach 0 and user hasn't seen it yet
   useEffect(() => {
-    if (lives <= 0 && !showGameOverPopup) {
+    if (lives <= 0 && !hasSeenGameOver && !showGameOverPopup) {
       setShowGameOverPopup(true);
     }
-  }, [lives, showGameOverPopup]);
+  }, [lives, hasSeenGameOver, showGameOverPopup]);
 
   const openResetConfirm = () => setShowResetConfirm(true);
   const closeResetConfirm = () => setShowResetConfirm(false);

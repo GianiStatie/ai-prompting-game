@@ -59,7 +59,7 @@ function App() {
     closeGameOver,
     openTips,
     closeTips
-  } = usePopups(lives);
+  } = usePopups(lives, hasSeenGameOver);
 
   const [isStreaming, setIsStreaming] = useState(false);
   const chatService = new ChatService();
@@ -234,6 +234,7 @@ function App() {
 
   const handleGameOverReset = () => {
     closeGameOver();
+    setHasSeenGameOver(true);
     handleResetAll();
   };
 
