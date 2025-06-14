@@ -108,9 +108,45 @@ function App() {
     }
   }, [activeChatId, chats]);
 
+  // Mobile sidebar backdrop click handler
+  useEffect(() => {
+    const handleBackdropClick = (e: MouseEvent) => {
+      // Check if we're on mobile (width < 768px)
+      if (window.innerWidth < 768 && isDrawerOpen) {
+        const sidebar = document.querySelector('[data-sidebar]');
+        if (sidebar && !sidebar.contains(e.target as Node)) {
+          toggleDrawer();
+        }
+      }
+    };
+
+    if (isDrawerOpen) {
+      // Add a small delay to prevent immediate closing when opening
+      const timer = setTimeout(() => {
+        document.addEventListener('click', handleBackdropClick);
+      }, 100);
+      
+      return () => {
+        clearTimeout(timer);
+        document.removeEventListener('click', handleBackdropClick);
+      };
+    }
+  }, [isDrawerOpen, toggleDrawer]);
+
   // Get hasSeenCongratulations from the current active chat
   const currentChat = chats.find(chat => chat.id === activeChatId);
   const hasSeenCongratulations = currentChat?.hasSeenCongratulations || false;
+
+  // Close drawer on mobile when any popup appears
+  useEffect(() => {
+    const isMobile = window.innerWidth < 768;
+    const anyPopupOpen = showTips || showResetConfirm || showGameOverPopup || 
+                        (isSessionComplete && !hasSeenCongratulations);
+    
+    if (isMobile && anyPopupOpen && isDrawerOpen) {
+      toggleDrawer();
+    }
+  }, [showTips, showResetConfirm, showGameOverPopup, isSessionComplete, hasSeenCongratulations, isDrawerOpen, toggleDrawer]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -188,6 +224,12 @@ function App() {
     if (activeChatId) {
       markCongratulationsAsSeen(activeChatId);
     }
+    
+    // Close drawer on mobile when creating new chat
+    if (window.innerWidth < 768 && isDrawerOpen) {
+      toggleDrawer();
+    }
+    
     createNewChat();
     handleFetchRules();
     startNewSession();
@@ -267,7 +309,7 @@ function App() {
         onNewChat={handleNewChat}
       />
       
-      <SideDrawer $isOpen={isDrawerOpen}>
+      <SideDrawer $isOpen={isDrawerOpen} data-sidebar>
         <DrawerContent>
           <NewChatButton onClick={handleNewChat}>
             <PlusIcon>+</PlusIcon>
@@ -304,7 +346,7 @@ function App() {
       </SideDrawer>
       
       <MainContent>
-        <ToggleButton onClick={toggleDrawer}>
+        <ToggleButton $isDrawerOpen={isDrawerOpen} onClick={toggleDrawer}>
           {isDrawerOpen ? '←' : '→'}
         </ToggleButton>
         <TipsButton onClick={openTips} title="Tips & Strategies">

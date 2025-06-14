@@ -1,6 +1,9 @@
 import React, { useRef, useEffect, useState } from 'react';
 import styled from 'styled-components';
 
+// Media query breakpoints
+const MOBILE_BREAKPOINT = '768px';
+
 const InputWrapper = styled.div`
   position: relative;
   flex: 1;
@@ -25,6 +28,11 @@ const HighlightOverlay = styled.div`
   line-height: 1.5;
   color: transparent;
   z-index: 1;
+
+  @media (max-width: ${MOBILE_BREAKPOINT}) {
+    padding: 14px 12px;
+    font-size: 16px; /* Keep at 16px to prevent iOS zoom */
+  }
 `;
 
 const StyledTextarea = styled.textarea`
@@ -73,6 +81,20 @@ const StyledTextarea = styled.textarea`
   &::-webkit-scrollbar-thumb:hover {
     background-color: #6b6c7b;
   }
+
+  @media (max-width: ${MOBILE_BREAKPOINT}) {
+    font-size: 16px; /* Prevent zoom on iOS */
+    padding: 14px 12px;
+    min-height: 50px;
+    max-height: 80px;
+    line-height: 1.4;
+  }
+
+  @media (max-width: 480px) {
+    padding: 12px 10px;
+    min-height: 48px;
+    max-height: 100px; /* Allow more height on very small screens */
+  }
 `;
 
 const HighlightedWord = styled.span`
@@ -80,6 +102,10 @@ const HighlightedWord = styled.span`
   border-radius: 3px;
   padding: 0px 0px;
   margin: 0 0px;
+
+  @media (max-width: ${MOBILE_BREAKPOINT}) {
+    border-radius: 2px;
+  }
 `;
 
 interface HighlightedInputProps {
