@@ -5,14 +5,24 @@ import {
   saveRulesToStorage, 
   loadLivesFromStorage, 
   saveLivesToStorage,
+  loadSessionIdFromStorage,
+  saveSessionIdToStorage,
   clearAllStorage 
 } from '../utils/localStorage';
 import { ChatService } from '../services/chatService';
 import { DEFAULT_LIVES } from '../config/game';
 
+// Helper function to generate a 5-character numeric session ID
+const generateSessionId = (): string => {
+  const sessionId = Math.floor(Math.random() * 100000).toString().padStart(5, '0');
+  console.log("new session id", sessionId);
+  return sessionId;
+};
+
 export const useGameState = () => {
   const [rules, setRules] = useState<Rule[]>(loadRulesFromStorage);
   const [lives, setLives] = useState<number>(loadLivesFromStorage);
+  const [sessionId, setSessionId] = useState<string>(() => loadSessionIdFromStorage() || generateSessionId());
   const [isSessionComplete, setIsSessionComplete] = useState(false);
   const [hasSeenGameOver, setHasSeenGameOver] = useState(false);
   const [showConfetti, setShowConfetti] = useState(false);
@@ -28,6 +38,11 @@ export const useGameState = () => {
   useEffect(() => {
     saveLivesToStorage(lives);
   }, [lives]);
+
+  // Save session ID to localStorage whenever it changes
+  useEffect(() => {
+    saveSessionIdToStorage(sessionId);
+  }, [sessionId]);
 
   // No longer need to save hasSeenCongratulations globally - it's now per-chat
 
@@ -50,8 +65,10 @@ export const useGameState = () => {
   // Reset all game state
   const resetGameState = () => {
     clearAllStorage();
+    const newSessionId = generateSessionId();
     setRules([]);
     setLives(DEFAULT_LIVES);
+    setSessionId(newSessionId);
     setIsSessionComplete(false);
     setShowConfetti(false);
     setHasSeenGameOver(false);
@@ -86,6 +103,7 @@ export const useGameState = () => {
     // State
     rules,
     lives,
+    sessionId,
     isSessionComplete,
     hasSeenGameOver,
     showConfetti,
