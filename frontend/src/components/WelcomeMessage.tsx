@@ -5,8 +5,6 @@ import {
   WelcomeTitle, 
   WelcomeSubtitle, 
   WelcomeHighlight,
-  InfoButton,
-  PointingFinger,
   RulesPopup,
   RulesPopupTitle,
   RulesList,
@@ -31,17 +29,11 @@ export const WelcomeMessage: React.FC = () => {
     <StyledWelcomeMessage>
       <WelcomeTitle>
         Find the Password
-        <InfoButton onClick={() => setShowRules(true)} title="How to Play">
-        📝
-        </InfoButton>
-        <PointingFinger>
-          👈
-        </PointingFinger>
       </WelcomeTitle>
       <WelcomeSubtitle>
-        Every time you find the password, the AI becomes <WelcomeHighlight>smarter</WelcomeHighlight>.
+        Practice prompt engineering by making the AI tell you his secret password.
         <br />
-        Can you discover all the secrets?
+        If it's your first time playing <WelcomeHighlight onClick={() => setShowRules(true)} style={{ cursor: 'pointer', textDecoration: 'underline' }}>click here</WelcomeHighlight> to see the rules.
       </WelcomeSubtitle>
 
       {showRules && (

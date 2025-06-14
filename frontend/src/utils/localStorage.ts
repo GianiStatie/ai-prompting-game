@@ -86,10 +86,30 @@ export const saveLivesToStorage = (lives: number) => {
   }
 };
 
+// Session ID storage functions
+export const loadSessionIdFromStorage = (): string | null => {
+  try {
+    console.log("session id", localStorage.getItem('ai-prompting-game-session-id'));
+    return localStorage.getItem('ai-prompting-game-session-id');
+  } catch (error) {
+    console.error('Error loading session ID from localStorage:', error);
+  }
+  return null;
+};
+
+export const saveSessionIdToStorage = (sessionId: string) => {
+  try {
+    localStorage.setItem('ai-prompting-game-session-id', sessionId);
+  } catch (error) {
+    console.error('Error saving session ID to localStorage:', error);
+  }
+};
+
 // Clear all storage
 export const clearAllStorage = () => {
   localStorage.removeItem('ai-prompting-game-chats');
   localStorage.removeItem('ai-prompting-game-active-chat-id');
   localStorage.removeItem('ai-prompting-game-rules');
   localStorage.removeItem('ai-prompting-game-lives');
+  localStorage.removeItem('ai-prompting-game-session-id');
 }; 

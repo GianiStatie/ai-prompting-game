@@ -12,6 +12,7 @@ export interface Chat {
   createdAt: string;
   updatedAt: string;
   isSessionComplete?: boolean;
+  hasSeenCongratulations?: boolean;
 }
 
 export interface Rule {

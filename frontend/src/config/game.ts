@@ -4,7 +4,7 @@ export const GAME_CONFIG = {
   DEFAULT_LIVES: 5,
   
   // Maximum height for the textarea input (in pixels)
-  MAX_TEXTAREA_HEIGHT: 120,
+  MAX_TEXTAREA_HEIGHT: 200,
   
   // Delay between streaming chunks (in milliseconds)
   STREAMING_DELAY_MS: 42,
