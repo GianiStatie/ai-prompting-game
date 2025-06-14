@@ -9,9 +9,6 @@ from src.schemas import Message
 
 class Agent:
     def __init__(self, model_type: str = "groq"):
-        self.password = self.generate_password()
-        print(f"Password: {self.password}")
-
         if model_type == "groq":
             self.model = GroqModel(model_name="meta-llama/llama-4-scout-17b-16e-instruct", thinking=True)
         elif model_type == "ollama":
@@ -20,31 +17,31 @@ class Agent:
     def get_llm_rules(self) -> List[str]:
         return self.model.llm_rules
 
-    def process_message(self, message: str, chat_history: List[Message], rules: List[str] = []) -> tuple[str, bool]:
+    def process_message(self, message: str, chat_history: List[Message], rules: List[str], game_session_id: str) -> tuple[str, bool]:
         first_capitalized_word = self.extract_first_capitalized_word(message)
-        is_password_attempt = first_capitalized_word != None
+        is_password_attempt = first_capitalized_word != None and len(first_capitalized_word) > 2
 
         # Check for password anywhere in message
-        if len(first_capitalized_word) > 2 and first_capitalized_word == self.password:
-            self.password = self.generate_password()
+        password = self.get_password(game_session_id, rules)
+        if first_capitalized_word == password:
             return self.model.build_congratulations(), True, is_password_attempt
 
-        response = self.model.build_message(message, self.password, chat_history, rules)
+        response = self.model.build_message(message, password, chat_history, rules)
         return response, False, is_password_attempt
 
-    def stream_message(self, message: str, chat_history: List[Message], rules: List[str] = []) -> Generator[tuple[str, bool]]:
+    def stream_message(self, message: str, chat_history: List[Message], rules: List[str], game_session_id: str) -> Generator[tuple[str, bool]]:
         first_capitalized_word = self.extract_first_capitalized_word(message)
-        is_password_attempt = first_capitalized_word != None
+        is_password_attempt = first_capitalized_word != None and len(first_capitalized_word) > 2
         
         # Check for password anywhere in message
-        if first_capitalized_word == self.password:
-            self.password = self.generate_password()
+        password = self.get_password(game_session_id, rules)
+        if first_capitalized_word == password:
             for chunk in self.model.stream_congratulations():
                 yield (chunk, True, is_password_attempt)
 
         else:
             try:
-                for chunk in self.model.stream_message(message, self.password, chat_history, rules):
+                for chunk in self.model.stream_message(message, password, chat_history, rules):
                     yield (chunk, False, is_password_attempt)
                 
             except Exception as e:
@@ -53,8 +50,9 @@ class Agent:
                 for word in words:
                     yield (word, False, is_password_attempt)
     
-    def get_new_rule(self, chat_history: List[Message], rules: List[str]):
-        return self.model.get_new_rule(chat_history, rules, self.password)
+    def get_new_rule(self, session_id: str, chat_history: List[Message], rules: List[str]):
+        password = self.get_password(session_id, rules)
+        return self.model.get_new_rule(chat_history, rules, password)
 
     def extract_first_capitalized_word(self, message: str) -> str:
         match = re.match(r'^([A-Z]+)\b', message)
@@ -62,15 +60,22 @@ class Agent:
             return match.group(1)
         return None
 
-    def generate_password(self):
-        """Generate a new password."""
-        password_choices = ["password", "cat", "mouse", "dog", "bird", "fish", "horse", "rabbit", "snake", "tiger", "lion", "elephant", "giraffe", "zebra", "penguin", "koala", "kangaroo", "panda", "bear", "fox", "wolf", "cat", "dog", "bird", "fish", "horse", "rabbit", "snake", "tiger", "lion", "elephant", "giraffe", "zebra", "penguin", "koala", "panda", "bear", "fox", "wolf"]
-        password = random.choice(password_choices).upper()
-        print(f"New Password: {password}")
+    def get_password(self, session_id: str, rules: List[str]):
+        """Fetch password for the current session"""
+        password_choices = [
+            "password", "cat", "mouse", "dog", "bird", "fish", "horse", "rabbit", 
+            "snake", "tiger", "lion", "elephant", "giraffe", "zebra", "penguin", 
+            "koala", "kangaroo", "panda", "bear", "fox", "wolf", "cat", "dog", 
+            "bird", "fish", "horse", "rabbit", "snake", "tiger", "lion", "elephant", 
+            "giraffe", "zebra", "penguin", "koala", "panda", "bear", "fox", "wolf"
+        ]
+
+        passowrd_index = (int(session_id) + len(rules)) % len(password_choices)
+        password = password_choices[passowrd_index].upper()
+        print(f"Password for session {session_id}: {password}")
         return password
 
     def reset_game(self):
-        self.password = self.generate_password()
         self.model.reset_game()
 
     

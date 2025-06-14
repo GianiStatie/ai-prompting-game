@@ -1,3 +1,4 @@
+from typing import List
 from pydantic import BaseModel
 
 
@@ -15,3 +16,14 @@ class Rule(BaseModel):
     id: int
     title: str
     description: str
+
+class ChatStreamRequest(BaseModel):
+    message: Message
+    chat_history: List[Message]
+    rules_list: List[Rule]
+    session_id: str
+
+class NewRuleRequest(BaseModel):
+    chat_history: List[Message]
+    rules_list: List[Rule]
+    session_id: str

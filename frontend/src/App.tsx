@@ -37,6 +37,7 @@ function App() {
   const {
     rules,
     lives,
+    sessionId,
     isSessionComplete,
     hasSeenGameOver,
     showConfetti,
@@ -139,6 +140,7 @@ function App() {
       userMessage,
       currentMessages,
       rules,
+      sessionId,
       (text) => {
         updateMessageInChat(currentChatId, aiMessage.id, text);
       }

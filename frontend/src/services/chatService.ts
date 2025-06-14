@@ -21,15 +21,16 @@ export class ChatService {
     userMessage: Message,
     currentMessages: Message[],
     rules: Rule[],
+    sessionId: string,
     onMessageUpdate: (text: string) => void
   ): Promise<ChatResponse> {
     try {
-      const response = await this.makeStreamRequest(userMessage, currentMessages, rules);
+      const response = await this.makeStreamRequest(userMessage, currentMessages, rules, sessionId);
       const streamResult = await this.processStreamResponse(response, onMessageUpdate);
       
       let newRule: Rule | undefined;
       if (streamResult.sessionCompleted) {
-        newRule = await this.handleSessionCompletion(currentMessages, rules);
+        newRule = await this.handleSessionCompletion(currentMessages, rules, sessionId);
       }
 
       return {
@@ -53,7 +54,8 @@ export class ChatService {
   private async makeStreamRequest(
     userMessage: Message,
     currentMessages: Message[],
-    rules: Rule[]
+    rules: Rule[],
+    sessionId: string
   ): Promise<Response> {
     const response = await fetch(`${this.apiUrl}/api/chat-stream`, {
       method: 'POST',
@@ -63,12 +65,15 @@ export class ChatService {
       body: JSON.stringify({
         message: userMessage,
         chat_history: currentMessages,
-        rules_list: rules
+        rules_list: rules,
+        session_id: sessionId
       }),
     });
 
     if (!response.ok) {
-      throw new Error('Network response was not ok');
+      const errorText = await response.text();
+      console.error(`HTTP ${response.status} Error:`, errorText);
+      throw new Error(`Network response was not ok: ${response.status} ${errorText}`);
     }
 
     return response;
@@ -156,7 +161,8 @@ export class ChatService {
 
   private async handleSessionCompletion(
     currentMessages: Message[],
-    rules: Rule[]
+    rules: Rule[],
+    sessionId: string
   ): Promise<Rule | undefined> {
     try {
       const newRuleResponse = await fetch(`${this.apiUrl}/api/new-rule`, {
@@ -166,7 +172,8 @@ export class ChatService {
         },
         body: JSON.stringify({
           chat_history: currentMessages,
-          rules_list: rules
+          rules_list: rules,
+          session_id: sessionId
         }),
       });
       const newRuleData = await newRuleResponse.json();
