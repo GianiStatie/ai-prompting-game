@@ -46,9 +46,7 @@ function App() {
     startNewSession,
     decreaseLives,
     addRule,
-    setHasSeenGameOver,
-    setShowConfetti,
-    setHasSeenCongratulations
+    setHasSeenGameOver
   } = useGameState();
 
   const {

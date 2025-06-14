@@ -7,7 +7,7 @@ import {
   saveLivesToStorage,
   clearAllStorage 
 } from '../utils/localStorage';
-import { fetchRules } from '../utils/chat';
+import { ChatService } from '../services/chatService';
 import { DEFAULT_LIVES } from '../config/game';
 
 export const useGameState = () => {
@@ -17,6 +17,8 @@ export const useGameState = () => {
   const [hasSeenCongratulations, setHasSeenCongratulations] = useState(false);
   const [hasSeenGameOver, setHasSeenGameOver] = useState(false);
   const [showConfetti, setShowConfetti] = useState(false);
+
+  const chatService = new ChatService();
 
   // Save rules to localStorage whenever rules change
   useEffect(() => {
@@ -31,7 +33,7 @@ export const useGameState = () => {
   // Fetch rules from API
   const handleFetchRules = async () => {
     try {
-      const data = await fetchRules();
+      const data = await chatService.fetchRules();
       // Sort rules in descending order by ID
       const sortedRules = [...data].sort((a, b) => b.id - a.id);
       setRules(sortedRules);
