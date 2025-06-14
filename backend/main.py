@@ -1,6 +1,6 @@
 import os
 import json
-from fastapi import FastAPI, Body
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from typing import List
 
@@ -9,7 +9,7 @@ import uvicorn
 from fastapi.responses import StreamingResponse
 
 from src.agent import Agent
-from src.schemas import Message, ChatResponse, Rule, ChatStreamRequest, NewRuleRequest
+from src.schemas import ChatResponse, Rule, ChatRequest, NewRuleRequest
 
 # Setup environment
 dotenv.load_dotenv()
@@ -41,13 +41,13 @@ async def get_new_rule(request: NewRuleRequest):
     return Rule(id=0, title=new_rule, description=new_rule)
 
 @app.post("/api/chat", response_model=ChatResponse)
-async def chat(message: Message, chat_history: List[Message], rules_list: List[Rule], session_id: str):
-    rules = [rule.title for rule in rules_list]
-    response, is_done, is_password_attempt = agent.process_message(message.text, chat_history, rules, session_id)
+async def chat(request: ChatRequest):
+    rules = [rule.title for rule in request.rules_list]
+    response, is_done, is_password_attempt = agent.process_message(request.message.text, request.chat_history, rules, request.session_id)
     return ChatResponse(message=response, is_done=is_done, is_password_attempt=is_password_attempt)
 
 @app.post("/api/chat-stream")
-async def stream(request: ChatStreamRequest):
+async def stream(request: ChatRequest):
     rules = [rule.title for rule in request.rules_list]
     def generate():
         for chunk, is_done, is_password_attempt in agent.stream_message(request.message.text, request.chat_history, rules, request.session_id):

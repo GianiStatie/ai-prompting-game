@@ -17,7 +17,7 @@ class Rule(BaseModel):
     title: str
     description: str
 
-class ChatStreamRequest(BaseModel):
+class ChatRequest(BaseModel):
     message: Message
     chat_history: List[Message]
     rules_list: List[Rule]
