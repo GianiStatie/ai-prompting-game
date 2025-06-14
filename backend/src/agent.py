@@ -55,9 +55,9 @@ class Agent:
         return self.model.get_new_rule(chat_history, rules, password)
 
     def extract_first_capitalized_word(self, message: str) -> str:
-        match = re.match(r'^([A-Z]+)\b', message)
-        if match:
-            return match.group(1)
+        matches = re.findall(r'\b[A-Z]+\b', message)
+        if matches:
+            return matches[0]
         return None
 
     def get_password(self, session_id: str, rules: List[str]):
