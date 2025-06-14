@@ -14,7 +14,6 @@ export const useGameState = () => {
   const [rules, setRules] = useState<Rule[]>(loadRulesFromStorage);
   const [lives, setLives] = useState<number>(loadLivesFromStorage);
   const [isSessionComplete, setIsSessionComplete] = useState(false);
-  const [hasSeenCongratulations, setHasSeenCongratulations] = useState(false);
   const [hasSeenGameOver, setHasSeenGameOver] = useState(false);
   const [showConfetti, setShowConfetti] = useState(false);
 
@@ -29,6 +28,8 @@ export const useGameState = () => {
   useEffect(() => {
     saveLivesToStorage(lives);
   }, [lives]);
+
+  // No longer need to save hasSeenCongratulations globally - it's now per-chat
 
   // Fetch rules from API
   const handleFetchRules = async () => {
@@ -52,7 +53,6 @@ export const useGameState = () => {
     setRules([]);
     setLives(DEFAULT_LIVES);
     setIsSessionComplete(false);
-    setHasSeenCongratulations(false);
     setShowConfetti(false);
     setHasSeenGameOver(false);
   };
@@ -60,7 +60,6 @@ export const useGameState = () => {
   // Handle session completion
   const completeSession = () => {
     setIsSessionComplete(true);
-    setHasSeenCongratulations(false);
     setShowConfetti(true);
     setHasSeenGameOver(false);
   };
@@ -68,7 +67,6 @@ export const useGameState = () => {
   // Handle new game session
   const startNewSession = () => {
     setIsSessionComplete(false);
-    setHasSeenCongratulations(true);
     setShowConfetti(false);
   };
 
@@ -89,7 +87,6 @@ export const useGameState = () => {
     rules,
     lives,
     isSessionComplete,
-    hasSeenCongratulations,
     hasSeenGameOver,
     showConfetti,
     
@@ -102,6 +99,6 @@ export const useGameState = () => {
     addRule,
     setHasSeenGameOver,
     setShowConfetti,
-    setHasSeenCongratulations
+    setIsSessionComplete
   };
 }; 

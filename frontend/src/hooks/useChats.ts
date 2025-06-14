@@ -108,6 +108,21 @@ export const useChats = () => {
         return {
           ...chat,
           isSessionComplete: true,
+          hasSeenCongratulations: false, // Mark that congratulations haven't been seen yet
+          updatedAt: new Date().toISOString()
+        };
+      }
+      return chat;
+    }));
+  };
+
+  // Mark congratulations as seen for a specific chat
+  const markCongratulationsAsSeen = (chatId: string) => {
+    setChats(prev => prev.map(chat => {
+      if (chat.id === chatId) {
+        return {
+          ...chat,
+          hasSeenCongratulations: true,
           updatedAt: new Date().toISOString()
         };
       }
@@ -163,6 +178,7 @@ export const useChats = () => {
     addMessageToChat,
     updateMessageInChat,
     markChatAsComplete,
+    markCongratulationsAsSeen,
     selectChat,
     deleteChat,
     renameChat,

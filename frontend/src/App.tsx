@@ -27,6 +27,7 @@ function App() {
     addMessageToChat,
     updateMessageInChat,
     markChatAsComplete,
+    markCongratulationsAsSeen,
     selectChat,
     deleteChat,
     renameChat,
@@ -37,7 +38,6 @@ function App() {
     rules,
     lives,
     isSessionComplete,
-    hasSeenCongratulations,
     hasSeenGameOver,
     showConfetti,
     handleFetchRules,
@@ -46,7 +46,8 @@ function App() {
     startNewSession,
     decreaseLives,
     addRule,
-    setHasSeenGameOver
+    setHasSeenGameOver,
+    setIsSessionComplete
   } = useGameState();
 
   const {
@@ -91,9 +92,15 @@ function App() {
   useEffect(() => {
     if (activeChatId) {
       const activeChat = chats.find(chat => chat.id === activeChatId);
-      // This will be handled by the useGameState hook if needed
+      setIsSessionComplete(activeChat?.isSessionComplete || false);
+    } else {
+      setIsSessionComplete(false);
     }
   }, [activeChatId, chats]);
+
+  // Get hasSeenCongratulations from the current active chat
+  const currentChat = chats.find(chat => chat.id === activeChatId);
+  const hasSeenCongratulations = currentChat?.hasSeenCongratulations || false;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -166,6 +173,10 @@ function App() {
   };
 
   const handleNewChat = () => {
+    // Mark congratulations as seen for the current chat before creating a new one
+    if (activeChatId) {
+      markCongratulationsAsSeen(activeChatId);
+    }
     createNewChat();
     handleFetchRules();
     startNewSession();
@@ -173,8 +184,11 @@ function App() {
 
   const handleChatSelect = (chatId: string) => {
     selectChat(chatId);
+    // Mark congratulations as seen when switching to a different completed chat
     const selectedChat = chats.find(chat => chat.id === chatId);
-    // Handle session complete state if needed
+    if (selectedChat?.isSessionComplete && !selectedChat?.hasSeenCongratulations) {
+      markCongratulationsAsSeen(chatId);
+    }
   };
 
   const handleDeleteChat = (chatId: string, e: React.MouseEvent) => {

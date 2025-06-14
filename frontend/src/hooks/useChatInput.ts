@@ -1,7 +1,11 @@
 import { useState, useEffect, useRef } from 'react';
 import { GAME_CONFIG } from '../config/game';
 
-export const useChatInput = (isStreaming: boolean, isSessionComplete: boolean, lives: number) => {
+export const useChatInput = (
+  isStreaming: boolean, 
+  isSessionComplete: boolean, 
+  lives: number,
+) => {
   const [inputValue, setInputValue] = useState('');
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -46,7 +50,7 @@ export const useChatInput = (isStreaming: boolean, isSessionComplete: boolean, l
     return 'Send';
   };
 
-  const isDisabled = isStreaming || isSessionComplete || lives <= 0;
+  const isDisabled = isStreaming || isSessionComplete || lives <= 0
 
   return {
     inputValue,
