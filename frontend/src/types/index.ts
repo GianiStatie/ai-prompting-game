@@ -3,6 +3,7 @@ export interface Message {
   text: string;
   isUser: boolean;
   timestamp?: string;
+  isLoading?: boolean;
 }
 
 export interface Chat {

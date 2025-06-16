@@ -2,7 +2,36 @@
 node_modules/
 package-lock.json
 
-.venv
-__pycache__
+# Frontend
+frontend/node_modules/
+frontend/dist/*
+frontend/.env
+frontend/.env.local
+frontend/.env.development.local
+frontend/.env.test.local
+frontend/.env.production.local
+frontend/npm-debug.log*
+frontend/yarn-debug.log*
+frontend/yarn-error.log*
 
-.env
+# Backend
+*__pycache__
+backend/*.pyc
+backend/venv/
+backend/.env
+backend/.env.local
+backend/.pytest_cache/
+backend/coverage/
+backend/.coverage
+backend/htmlcov/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+
+# OS
+.DS_Store
+Thumbs.db 

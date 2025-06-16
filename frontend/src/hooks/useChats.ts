@@ -89,7 +89,33 @@ export const useChats = () => {
         const updatedMessages = [...chat.messages];
         const messageIndex = updatedMessages.findIndex(msg => msg.id === messageId);
         if (messageIndex !== -1) {
-          updatedMessages[messageIndex] = { ...updatedMessages[messageIndex], text };
+          updatedMessages[messageIndex] = { 
+            ...updatedMessages[messageIndex], 
+            text,
+            isLoading: false // Clear loading state when updating with actual text
+          };
+        }
+        return {
+          ...chat,
+          messages: updatedMessages,
+          updatedAt: new Date().toISOString()
+        };
+      }
+      return chat;
+    }));
+  };
+
+  // Set message loading state
+  const setMessageLoading = (chatId: string, messageId: number, isLoading: boolean) => {
+    setChats(prev => prev.map(chat => {
+      if (chat.id === chatId) {
+        const updatedMessages = [...chat.messages];
+        const messageIndex = updatedMessages.findIndex(msg => msg.id === messageId);
+        if (messageIndex !== -1) {
+          updatedMessages[messageIndex] = { 
+            ...updatedMessages[messageIndex], 
+            isLoading 
+          };
         }
         return {
           ...chat,
@@ -177,6 +203,7 @@ export const useChats = () => {
     createNewChat,
     addMessageToChat,
     updateMessageInChat,
+    setMessageLoading,
     markChatAsComplete,
     markCongratulationsAsSeen,
     selectChat,
