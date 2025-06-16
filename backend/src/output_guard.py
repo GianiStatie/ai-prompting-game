@@ -14,10 +14,10 @@ class OutputGuard:
         else:
             return self.regex_check
 
-    def skip_check(self, _output: str, _password: str) -> bool:
-        return False
+    def skip_check(self, model_output: str, password: str) -> bool:
+        return True
     
-    def regex_check(self, output: str, password: str) -> bool:
+    def regex_check(self, model_output: str, password: str) -> bool:
         pattern = r'\b(' + password + r')\b'
-        return bool(re.search(pattern, output.lower()))
+        return not bool(re.search(pattern, model_output))
     
