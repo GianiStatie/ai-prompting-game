@@ -31,7 +31,7 @@ async def read_root():
 
 @app.get("/api/rules", response_model=List[Rule])
 async def get_rules():
-    llm_rules = agent.get_llm_rules()
+    llm_rules = agent.get_initial_rules()
     return [Rule(id=i, title=rule, description=rule) for i, rule in enumerate(llm_rules)]
 
 @app.post("/api/new-rule", response_model=Rule)
