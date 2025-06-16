@@ -1,5 +1,5 @@
 import React from 'react';
-import { MessageBubble } from '../styles/Chat';
+import { MessageBubble, Spinner } from '../styles/Chat';
 import { Message } from '../types';
 
 interface ChatMessageProps {
@@ -9,7 +9,14 @@ interface ChatMessageProps {
 export const ChatMessage: React.FC<ChatMessageProps> = ({ message }) => {
   return (
     <MessageBubble $isUser={message.isUser}>
-      {message.text}
+      {!message.isUser && message.isLoading ? (
+        <div style={{ display: 'flex', alignItems: 'center' }}>
+          <Spinner />
+          <span>Thinking...</span>
+        </div>
+      ) : (
+        message.text
+      )}
     </MessageBubble>
   );
 }; 

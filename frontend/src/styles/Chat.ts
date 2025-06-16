@@ -1,7 +1,24 @@
-import styled from 'styled-components';
+import styled, { keyframes } from 'styled-components';
 
 // Media query breakpoints
 const MOBILE_BREAKPOINT = '768px';
+
+// Spinner animation
+const spin = keyframes`
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+`;
+
+export const Spinner = styled.div`
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  border: 2px solid #666;
+  border-top: 2px solid #fff;
+  border-radius: 50%;
+  animation: ${spin} 1s linear infinite;
+  margin-right: 8px;
+`;
 
 export const ChatContainer = styled.div`
   flex: 1;

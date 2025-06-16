@@ -1,6 +1,7 @@
 import React from 'react';
 import { Popup } from './Popup';
 import { TipsPopup } from './TipsPopup';
+import { Rule } from '../types';
 
 interface PopupsContainerProps {
   // Popup states
@@ -9,6 +10,7 @@ interface PopupsContainerProps {
   showGameOverPopup: boolean;
   isSessionComplete: boolean;
   hasSeenCongratulations: boolean;
+  rules: Rule[];
   
   // Popup actions
   onCloseTips: () => void;
@@ -25,6 +27,7 @@ export const PopupsContainer: React.FC<PopupsContainerProps> = ({
   showGameOverPopup,
   isSessionComplete,
   hasSeenCongratulations,
+  rules,
   onCloseTips,
   onCancelReset,
   onConfirmReset,
@@ -32,9 +35,11 @@ export const PopupsContainer: React.FC<PopupsContainerProps> = ({
   onGameOverReset,
   onNewChat
 }) => {
+  const currentLevel = rules.length;
+
   return (
     <>
-      <TipsPopup isVisible={showTips} onClose={onCloseTips} />
+      <TipsPopup isVisible={showTips} onClose={onCloseTips} currentLevel={currentLevel} />
       
       {isSessionComplete && !hasSeenCongratulations && (
         <Popup

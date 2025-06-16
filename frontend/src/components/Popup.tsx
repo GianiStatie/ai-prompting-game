@@ -26,6 +26,8 @@ export const Popup: React.FC<PopupProps> = ({
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Enter') {
+        e.preventDefault();
+        e.stopPropagation();
         primaryButton.onClick();
       }
     };

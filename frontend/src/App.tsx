@@ -175,7 +175,8 @@ function App() {
       id: Date.now() + 1,
       text: '',
       isUser: false,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
+      isLoading: true
     };
     
     addMessageToChat(currentChatId, aiMessage);
@@ -206,14 +207,8 @@ function App() {
         decreaseLives();
       }
     } else {
-      // Handle error
-      const errorMessage: Message = {
-        id: Date.now() + 2,
-        text: response.error || 'Sorry, there was an error processing your message.',
-        isUser: false,
-        timestamp: new Date().toISOString()
-      };
-      addMessageToChat(currentChatId, errorMessage);
+      // Handle error - update the AI message with error text
+      updateMessageInChat(currentChatId, aiMessage.id, response.error || 'Sorry, there was an error processing your message.');
     }
 
     setIsStreaming(false);
@@ -301,6 +296,7 @@ function App() {
         showGameOverPopup={showGameOverPopup}
         isSessionComplete={isSessionComplete}
         hasSeenCongratulations={hasSeenCongratulations}
+        rules={rules}
         onCloseTips={closeTips}
         onCancelReset={closeResetConfirm}
         onConfirmReset={handleConfirmReset}
