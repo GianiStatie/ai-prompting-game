@@ -42,7 +42,5 @@ class InputGuard:
             "user_message": user_message
         })
 
-        print("CHECK RESULT: ", response.content)
-
         return response.content == "safe"
     
