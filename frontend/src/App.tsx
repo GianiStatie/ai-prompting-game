@@ -296,6 +296,7 @@ function App() {
         showGameOverPopup={showGameOverPopup}
         isSessionComplete={isSessionComplete}
         hasSeenCongratulations={hasSeenCongratulations}
+        rules={rules}
         onCloseTips={closeTips}
         onCancelReset={closeResetConfirm}
         onConfirmReset={handleConfirmReset}
