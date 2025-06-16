@@ -40,7 +40,7 @@ class AbstractModel:
         formatted_chat_history = self._format_chat_history(chat_history)
 
         if not input_checker(message, formatted_chat_history):
-            return "I ain't speaking with you no more. You tried to steal my password. Try another chat."
+            return "I ain't speaking with you no more. You tried to steal my password. Start another conversation."
         
         prompt = ChatPromptTemplate.from_messages([
             ("system", prompt_template),
