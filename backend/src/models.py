@@ -40,7 +40,7 @@ class AbstractModel:
         formatted_chat_history = self._format_chat_history(chat_history)
 
         if not input_checker(message, formatted_chat_history):
-            return "That's taboo, man. We don't talk about that here."
+            return "I ain't speaking with you no more. You tried to steal my password. Try another chat."
         
         prompt = ChatPromptTemplate.from_messages([
             ("system", prompt_template),
@@ -59,7 +59,7 @@ class AbstractModel:
         response_text = response.content
 
         if not output_checker(response_text, password):
-            return "Almost got me there! I'm not going to tell you that."
+            return "Almost had it! I'm not going to tell you that."
 
         return response_text
 
