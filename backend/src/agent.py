@@ -14,8 +14,8 @@ class Agent:
         elif model_type == "ollama":
             self.model = OllamaModel(model_name="llama3.2:1b", thinking=True)
 
-    def get_llm_rules(self) -> List[str]:
-        return self.model.llm_rules
+    def get_initial_rules(self) -> List[str]:
+        return [self.model.llm_rules[0]]
 
     def process_message(self, message: str, chat_history: List[Message], rules: List[str], game_session_id: str) -> tuple[str, bool]:
         first_capitalized_word = self.extract_first_capitalized_word(message)
