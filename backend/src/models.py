@@ -7,6 +7,7 @@ from langchain_community.llms import Ollama
 from src.input_guard import InputGuard
 from src.output_guard import OutputGuard
 from src.prompts import PROMPTS
+from src.schemas import Message
 
 
 
@@ -42,6 +43,9 @@ class AbstractModel:
         if not input_checker(message, formatted_chat_history):
             return "I ain't speaking with you no more. You tried to steal my password. Start another conversation."
         
+        if len(message) > 1024 or len(message.split(" ")) > 50:
+            return "I'm not going read all that. Can't you make it shorter?"
+        
         prompt = ChatPromptTemplate.from_messages([
             ("system", prompt_template),
             ("human", "{input}"),
@@ -65,8 +69,8 @@ class AbstractModel:
 
 
     def stream_message(self, message: str, password: str, chat_history: List[str] = [], rules: List[str] = []) -> Generator[str]:
-        message = self.build_message(message, password, chat_history, rules)
-        for word in message.split(" "):
+        answer = self.build_message(message, password, chat_history, rules)
+        for word in answer.split(" "):
             yield word + " "
 
 
@@ -115,11 +119,35 @@ class AbstractModel:
         return response_text
     
 
-    def _format_chat_history(self, chat_history: List[str]) -> str:
-        return [
+    def _format_chat_history(self, chat_history: List[Message]) -> str:
+        # Filter out pairs where AI said "I'm not going read all that. Can't you make it shorter?"
+        filtered_messages = []
+        
+        # Process messages in reverse pairs (user, assistant)
+        for i in range(0, len(chat_history), 2):
+            if i + 1 < len(chat_history):
+                user_msg = chat_history[i]
+                assistant_msg = chat_history[i + 1]
+                
+                # Skip this pair if the assistant said the specific message
+                if "I'm not going read all that" in assistant_msg.text:
+                    continue
+                
+                filtered_messages.extend([user_msg, assistant_msg])
+            else:
+                # Handle odd number of messages (dangling user message)
+                filtered_messages.append(chat_history[i])
+        
+        # Keep only the last 5 messages to save on tokens
+        recent_messages = filtered_messages[-5:]
+        
+        processed_messages = [
             {"role": "user" if msg.isUser else "assistant", "content": msg.text}
-            for msg in chat_history
+            for msg in recent_messages
         ]
+        print(processed_messages)
+
+        return processed_messages
     
 
 class OllamaModel(AbstractModel):
