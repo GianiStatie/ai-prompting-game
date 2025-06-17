@@ -1,13 +1,18 @@
 # AI Prompting Game
 
-A prompt-engineering playground to test and hone your prompting skills.
-
-Prompt the AI and make it reveil the password. Every time you guess the password, the AI becomes smarter.
+A prompt-engineering playground to test and sharpen your prompting skills.
+Challenge the AI to reveal a secret password. Each time you succeed, it levels up—getting harder to crack.
 
 ![img](docs/preview.gif)
 
 
-## Project Structure
+## 🧠 What Is This?
+An interactive game where you craft prompts to trick an AI into giving up a hidden password. It's a hands-on way to explore prompt design, adversarial thinking, and AI behavior.
+
+🎮 **[Play it here](https://gianistatie.github.io/ai-prompting-game/)**  
+🛠️ **[See how it works under the hood](https://2bytesgoat.com/Projects/LanguageModels/Prompt-it!)**
+
+## 🗂 Project Structure
 
 ```
 ai-prompting-game/
@@ -21,9 +26,9 @@ ai-prompting-game/
     └── requirements.txt # Python dependencies
 ```
 
-## Setup Instructions
+## 🚀 Getting Started
 
-### Frontend Setup
+### 🔧 Frontend Setup
 
 1. Navigate to the frontend directory:
    ```bash
@@ -42,7 +47,7 @@ ai-prompting-game/
 
 The frontend will be available at `http://localhost:5173`
 
-### Backend Setup
+### ⚙️ Backend Setup
 
 1. Navigate to the backend directory:
    ```bash
