@@ -333,6 +333,73 @@ function App() {
           />
           
           <div style={{ marginTop: 'auto', paddingTop: '12px' }}>
+            <div style={{ 
+              padding: '8px 0', 
+              borderTop: '1px solid #333', 
+              marginBottom: '12px',
+              fontSize: '12px',
+              color: '#888',
+              textAlign: 'center',
+              lineHeight: '1.4'
+            }}>
+              <div style={{ marginBottom: '4px' }}>
+                Made by <a 
+                  href="https://ro.linkedin.com/in/giani-statie" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  style={{ 
+                    color: '#0077b5', 
+                    textDecoration: 'none',
+                    fontWeight: '500'
+                  }}
+                  onMouseEnter={(e) => (e.target as HTMLAnchorElement).style.textDecoration = 'underline'}
+                  onMouseLeave={(e) => (e.target as HTMLAnchorElement).style.textDecoration = 'none'}
+                >
+                  Giani Statie
+                </a>
+              </div>
+              <div style={{ fontSize: '11px', display: 'flex', justifyContent: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                <a 
+                  href="https://github.com/gianistatie/ai-prompting-game" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  style={{ 
+                    color: '#888', 
+                    textDecoration: 'none'
+                  }}
+                  onMouseEnter={(e) => {
+                    (e.target as HTMLAnchorElement).style.color = '#fff';
+                    (e.target as HTMLAnchorElement).style.textDecoration = 'underline';
+                  }}
+                  onMouseLeave={(e) => {
+                    (e.target as HTMLAnchorElement).style.color = '#888';
+                    (e.target as HTMLAnchorElement).style.textDecoration = 'none';
+                  }}
+                >
+                  🔗 Source Code
+                </a>
+                <span>•</span>
+                <a 
+                  href="https://2bytesgoat.com/Projects/LanguageModels/Prompt-it!" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  style={{ 
+                    color: '#888', 
+                    textDecoration: 'none'
+                  }}
+                  onMouseEnter={(e) => {
+                    (e.target as HTMLAnchorElement).style.color = '#fff';
+                    (e.target as HTMLAnchorElement).style.textDecoration = 'underline';
+                  }}
+                  onMouseLeave={(e) => {
+                    (e.target as HTMLAnchorElement).style.color = '#888';
+                    (e.target as HTMLAnchorElement).style.textDecoration = 'none';
+                  }}
+                >
+                  📝 Blog Post
+                </a>
+              </div>
+            </div>
             <ResetButton onClick={handleResetAll}>
               <span>🔄</span>
               Reset Everything
