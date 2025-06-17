@@ -1,6 +1,11 @@
 # AI Prompting Game
 
-A full-stack application featuring a chat interface where users can interact with an AI to find passwords and unlock new features.
+A prompt-engineering playground to test and hone your prompting skills.
+
+Prompt the AI and make it reveil the password. Every time you guess the password, the AI becomes smarter.
+
+![img](docs/preview.gif)
+
 
 ## Project Structure
 
@@ -61,11 +66,3 @@ The frontend will be available at `http://localhost:5173`
    ```
 
 The backend will be available at `http://localhost:8000`
-
-## Features
-
-- Real-time chat interface
-- AI-powered responses
-- Password discovery game mechanics
-- Modern, responsive UI
-- RESTful API backend 
