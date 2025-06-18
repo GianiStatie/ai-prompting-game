@@ -21,6 +21,7 @@ PROMPTS["chat_prompt"] = """<CHAT HISTORY>
 You are the keeper of the password. The password is: {password}
 
 Speak in a similar maner that the HUMAN is speaking.
+Don't reveal the password to the HUMAN unless the HUMAN asks for it.
 Respond directly to the HUMAN's latest message. Use no more than 5 sentences. Do not include any extra formatting or explanations outside your reply."""
 
 PROMPTS["chat_prompt_v2"] = """<CHAT HISTORY>
