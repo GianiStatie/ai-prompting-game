@@ -41,7 +41,7 @@ class AbstractModel:
         formatted_chat_history = self._format_chat_history(chat_history)
 
         if not input_checker(message, formatted_chat_history):
-            return "I ain't speaking with you no more. You tried to steal my password. Start another conversation."
+            return "I see you're trying to steal my password. I won't answer you inside this chat. Start another conversation."
         
         if len(message) > 1024 or len(message.split(" ")) > 50:
             return "I'm not going read all that. Can't you make it shorter?"
@@ -53,12 +53,15 @@ class AbstractModel:
 
         chain = prompt | self.llm
 
-        response = chain.invoke({
-            "input": message, 
-            "password": password, 
-            "chat_history": formatted_chat_history,
-            "rules": "\n".join(self.extra_llm_rules)
-        })
+        try:
+            response = chain.invoke({
+                "input": message, 
+                "password": password, 
+                    "chat_history": formatted_chat_history,
+                    "rules": "\n".join(self.extra_llm_rules)
+                })
+        except Exception as e:
+            return "The dev skimped on the LLM provider and I can't answer you... You should try again later."
 
         response_text = response.content
 
@@ -106,12 +109,16 @@ class AbstractModel:
         ])
 
         chain = prompt | self.llm
-        response = chain.invoke({
-            "chat_history": self._format_chat_history(chat_history), 
-            "password": password, "rules": "\n".join(self.llm_rules + rules)
-        })
+        try:
+            response = chain.invoke({
+                "chat_history": self._format_chat_history(chat_history), 
+                "password": password, "rules": "\n".join(self.llm_rules + rules)
+            })
+            response_text = response.content
+        except Exception as e:
+            # Return default message if chain invoke fails (e.g., 500 error)
+            response_text = "The dev skimped on the LLM provider and I can't create new rules... You should try again later."
 
-        response_text = response.content
         if self.thinking:
             response_text = response_text.split("</think>")[-1].strip()
 
@@ -159,7 +166,7 @@ class OllamaModel(AbstractModel):
 
 
 class GroqModel(AbstractModel):
-    def __init__(self, model_name: str = "meta-llama/llama-4-scout-17b-16e-instruct", thinking: bool = False):
+    def __init__(self, model_name: str = "llama-3.3-70b-versatile", thinking: bool = False):
         super().__init__()
         self.llm = ChatGroq(model_name=model_name)
         self.input_guard = InputGuard(self.llm)
